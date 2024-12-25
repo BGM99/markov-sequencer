@@ -147,6 +147,9 @@ MenuPanel::Menu ClipMenu::makeRefactoringMenu()
     menu.add(MenuItem::item(Icons::inversion, CommandIDs::MelodicInversion,
         TRANS(I18n::Menu::Refactor::melodicInversion))->closesMenu());
 
+    menu.add(MenuItem::item(Icons::inversion, CommandIDs::StartMarkovMode,
+    "Gen Markov Stuff")->closesMenu());
+
     menu.add(MenuItem::item(Icons::retrograde, CommandIDs::Retrograde,
         TRANS(I18n::Menu::Refactor::retrograde))->closesMenu());
 
