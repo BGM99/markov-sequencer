@@ -355,6 +355,10 @@
                 resource="0" file="../../Source/Core/CommandPalette/CommandPaletteTimelineEvents.h"/>
         </GROUP>
         <GROUP id="{93B0AF7A-BC73-2049-CF6B-76592F77C01F}" name="Midi">
+          <GROUP id="{948DD87D-C5A5-E49E-4B57-7146F00161CC}" name="Models">
+            <FILE id="a3zgJW" name="MarkovModel.cpp" compile="1" resource="0" file="../../Source/Core/Midi/Models/MarkovModel.cpp"/>
+            <FILE id="ryFsQ4" name="MarkovModel.h" compile="0" resource="0" file="../../Source/Core/Midi/Models/MarkovModel.h"/>
+          </GROUP>
           <GROUP id="{5A19293F-FDB1-F5B4-F808-E06A0B919C46}" name="Patterns">
             <GROUP id="{E67D5206-AD2A-7E67-A0B1-94B04061537C}" name="Modifiers">
               <FILE id="f2tEMl" name="ArpeggiationSequenceModifier.h" compile="0"
