@@ -240,7 +240,9 @@ namespace CommandIDs
         MakeLegatoOverlapping           = 0x4604, // connect notes together, but with a slight overlap for use in certain VSTs
         Glue                            = 0x4605, // glue overlapping notes
 
-        YourNextCommandId               = 0x4700
+        StartMarkovMode                 = 0x4700,
+
+        YourNextCommandId               = 0x4800
     };
 
     CommandIDs::Id getIdForName(const String &command);

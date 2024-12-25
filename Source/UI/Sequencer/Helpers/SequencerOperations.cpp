@@ -39,6 +39,8 @@
 
 #include "Pattern.h"
 
+#include "Models/MarkovModel.h"
+
 #include "UndoStack.h"
 #include "AutomationTrackActions.h"
 
@@ -717,6 +719,20 @@ void SequencerOperations::melodicInversion(const NoteListBase &notes,
     }
 
     sequence->changeGroup(groupBefore, groupAfter, undoable);
+}
+
+void SequencerOperations::startMarkovMode(const NoteListBase &notes)
+{
+    // sort the selection
+    Array<Note> sortedSelection;
+    for (int i = 0; i < notes.size(); ++i)
+    {
+        const auto &note = notes.getNoteUnchecked(i);
+        sortedSelection.addSorted(note, note);
+    }
+
+    auto  mm = MarkovModel();
+    mm.generateFromSequence(sortedSelection);
 }
 
 bool SequencerOperations::isBarStart(float absBeat,

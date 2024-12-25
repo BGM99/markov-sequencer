@@ -1442,6 +1442,9 @@ void PianoRoll::handleCommandMessage(int commandId)
     case CommandIDs::MelodicInversion:
         SequencerOperations::melodicInversion(this->getLassoOrEntireSequence());
         break;
+    case CommandIDs::StartMarkovMode:
+        SequencerOperations::startMarkovMode(this->getLassoOrEntireSequence());
+        break;
     case CommandIDs::Retrograde:
         SequencerOperations::retrograde(this->getLassoOrEntireSequence());
         break;

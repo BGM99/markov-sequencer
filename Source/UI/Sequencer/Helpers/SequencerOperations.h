@@ -116,6 +116,7 @@ struct SequencerOperations final
 
     static void retrograde(const NoteListBase &notes, bool undoable = true, bool shouldCheckpoint = true);
     static void melodicInversion(const NoteListBase &notes, bool undoable = true, bool shouldCheckpoint = true);
+    static void startMarkovMode(const NoteListBase &notes);
 
     static void makeStaccato(const NoteListBase &notes,
         float newLength, bool undoable = true, bool shouldCheckpoint = true);
