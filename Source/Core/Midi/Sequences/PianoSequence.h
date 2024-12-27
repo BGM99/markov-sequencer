@@ -86,6 +86,14 @@ public:
     void deserialize(const SerializedData &data) override;
     void reset() override;
 
+    //===------------------------------------------------------------------===//
+    // Hash
+    //===------------------------------------------------------------------===//
+    inline HashCode hashCode() const noexcept
+    {
+        return static_cast<HashCode>(this->getTrackId().hashCode());
+    }
+
 private:
 
     float findLastBeat() const noexcept override;
