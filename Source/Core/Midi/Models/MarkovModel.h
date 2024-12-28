@@ -17,23 +17,32 @@
 
 #pragma once
 
+#include "Common.h"
 #include "JuceHeader.h"
 #include "juce_dsp/juce_dsp.h"
 #include "../../ThirdParty/HopscotchMap/include/tsl/hopscotch_map.h"
 #include "Note.h"
-#include "PianoSequence.h"
+
 
 #include <cmath>
 
 
 
+
 class MarkovModel {
 
+
     struct PairHash {
-        std::size_t operator()(const std::pair<PianoSequence, PianoSequence>& pair) const {
+        std::size_t operator()(const std::pair<Note, Note>& pair) const {
             std::size_t h1 = pair.first.hashCode();
             std::size_t h2 = pair.second.hashCode();
-            return h1 ^ (h2 << 1); // Kombiniert die Hashes von first und second
+            return h1 ^ (h2 << 1);
+        }
+    };
+
+    struct SingleHash {
+        std::size_t operator()(const Note & note) const {
+            return note.hashCode();
         }
     };
 
@@ -45,10 +54,10 @@ class MarkovModel {
 
     //Count the Transitions from a Sound Object to another
     // {from, to} -> count
-    FlatHashMap<std::pair<PianoSequence, PianoSequence>, int> TransitionFrequency;
+    FlatHashMap<std::pair<Note, Note>, int> TransitionFrequency;
 
     dsp::Matrix<int> SoundMatrix;
-    Array<PianoSequence> states;
+    std::unordered_set<Note, SingleHash> states;
 
     void generateFromSequence(Array<Note> sortedSelection);
 
