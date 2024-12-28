@@ -3,6 +3,7 @@
 //
 
 #include "MarkovModel.h"
+#include <bits/stdc++.h>
 
 
 MarkovModel::MarkovModel() :
@@ -15,10 +16,17 @@ void MarkovModel::generateFromSequence(Array<Note> sortedSelection)
     {
         const auto &prev = sortedSelection.getReference(i);
         const auto &next = sortedSelection.getReference(i + 1);
-        const int deltaKey = next.getKey() - prev.getKey();
 
+        this->TransitionFrequency[{prev, next}] += 1;
 
-
+        this->states.insert(prev);
     }
+
+    this->states.insert(sortedSelection.getReference(sortedSelection.size() - 1));
+
+    int statesCount = this->states.size();
+
+    std::vector<Note> v;
+    std::copy(this->states.begin(), this->states.end(), back_inserter(v));
 
 }
