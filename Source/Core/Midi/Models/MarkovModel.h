@@ -23,10 +23,7 @@
 #include "../../ThirdParty/HopscotchMap/include/tsl/hopscotch_map.h"
 #include "Note.h"
 
-
 #include <cmath>
-
-
 
 
 class MarkovModel {
@@ -51,20 +48,20 @@ class MarkovModel {
 
     public:
     MarkovModel();
+    ~MarkovModel();
 
-    //Count the Transitions from a Sound Object to another
+    // Count the Transitions from a Sound Object to another
     // {from, to} -> count
     FlatHashMap<std::pair<Note, Note>, int> TransitionFrequency;
 
-    dsp::Matrix<int> SoundMatrix;
+    dsp::Matrix<int>* SoundMatrix;
     std::unordered_set<Note, SingleHash> states;
 
     void generateFromSequence(Array<Note> sortedSelection);
 
-    private:
-
-    //dsp::Matrix
-    //createFromTrack
     //saveToFile
     //loadFromFile
+
+    private:
+    void builtMatrix();
 };
