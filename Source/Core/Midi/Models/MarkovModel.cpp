@@ -2,13 +2,13 @@
 
 
 MarkovModel::MarkovModel() :
-    SoundMatrix(nullptr)
+    StateMatrix(nullptr), InitialStateVector(nullptr)
 {
 }
 
 MarkovModel::~MarkovModel()
 {
-    delete SoundMatrix;
+    delete StateMatrix;
 }
 
 void MarkovModel::generateFromSequence(Array<Note> sortedSelection)
@@ -20,26 +20,28 @@ void MarkovModel::generateFromSequence(Array<Note> sortedSelection)
 
         this->TransitionFrequency[{prev, next}] += 1;
 
+        this->SoundFrequency[prev] += 1;
+
         this->states.insert(prev);
     }
 
     this->states.insert(sortedSelection.getReference(sortedSelection.size() - 1));
-
-    int statesCount = this->states.size();
+    this->SoundFrequency[sortedSelection.getReference(sortedSelection.size() - 1)] += 1;
 
     //std::vector<Note> v;
     //std::copy(this->states.begin(), this->states.end(), back_inserter(v));
 
-    this->builtMatrix();
+    //this->builtMatrix();
+    this->builtInitialVector();
 }
 
 void MarkovModel::builtMatrix()
 {
-    this->SoundMatrix = new dsp::Matrix<int>(this->states.size(), this->states.size());
+    this->StateMatrix = new dsp::Matrix<float>(this->Size(), this->Size());
 
-    for (int i = 0; i < this->SoundMatrix->getNumColumns(); ++i)
+    for (int i = 0; i < this->StateMatrix->getNumColumns(); ++i)
     {
-        int l = (*this->SoundMatrix)(0, i);
+        int l = (*this->StateMatrix)(0, i);
     }
 
     for (auto note : this->states)
@@ -48,5 +50,23 @@ void MarkovModel::builtMatrix()
         {
             int test = this->TransitionFrequency[{state, note}];
         }
+    }
+}
+
+void MarkovModel::builtInitialVector()
+{
+    float prob[this->Size()];
+    this->InitialStateVector = new dsp::Matrix<float>(1, this->Size());
+    int sum = 0;
+    for (auto it = this->SoundFrequency.begin(); it != this->SoundFrequency.end(); ++it) {
+        sum += it->second;
+    }
+
+    for (int i = 0; i < Size(); ++i)
+    {
+        auto it = this->SoundFrequency.begin();
+        std::advance(it, i);
+        (*this->InitialStateVector)(0, i) = it->second / sum;
+        prob[i] = it->second / sum;
     }
 }

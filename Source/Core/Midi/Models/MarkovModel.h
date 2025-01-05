@@ -43,19 +43,30 @@ class MarkovModel {
         }
     };
 
-    template <class Key, class T, class HashFn = PairHash, class EqualKey = std::equal_to<Key>>
-    using FlatHashMap = tsl::hopscotch_map<Key, T, HashFn, EqualKey>;
-
     public:
     MarkovModel();
     ~MarkovModel();
 
-    // Count the Transitions from a Sound Object to another
+    // Counts the Transitions from a Sound Object to another
     // {from, to} -> count
-    FlatHashMap<std::pair<Note, Note>, int> TransitionFrequency;
+    tsl::hopscotch_map<std::pair<Note, Note>, int, PairHash> TransitionFrequency;
 
-    dsp::Matrix<int>* SoundMatrix;
+    // Probability matrix based on TransitionFrequency
+    dsp::Matrix<float>* StateMatrix;
+
+    // Counts how often a sound object appears
+    // {sound} -> count
+    tsl::hopscotch_map<Note, int, SingleHash> SoundFrequency;
+
+    // Probability vector based on SoundFrequency and states
+    dsp::Matrix<float>* InitialStateVector;
+
     std::unordered_set<Note, SingleHash> states;
+
+    // Number of all sound objects or states of the model
+    int Size() const {
+        return static_cast<int>(this->states.size());
+    }
 
     void generateFromSequence(Array<Note> sortedSelection);
 
@@ -64,4 +75,5 @@ class MarkovModel {
 
     private:
     void builtMatrix();
+    void builtInitialVector();
 };
