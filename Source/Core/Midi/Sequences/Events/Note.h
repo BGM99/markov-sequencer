@@ -107,7 +107,5 @@ protected:
 
 private:
 
-    HashCode calculateHash() const noexcept;
-
     JUCE_LEAK_DETECTOR(Note);
 };
