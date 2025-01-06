@@ -262,21 +262,3 @@ int Note::compareElements(const Note *const first, const Note *const second) noe
 
     return first->getId() - second->getId();
 }
-
-HashCode Note::calculateHash() const noexcept
-{
-    HashCode result;
-
-    hash_combine(result, packId(this->id));
-    hash_combine(result, this->key);
-    hash_combine(result, int(this->beat * Globals::ticksPerBeat));
-    hash_combine(result, int(this->length * Globals::ticksPerBeat));
-    hash_combine(result, int(this->velocity * Globals::velocitySaveResolution));
-
-    if (this->tuplet > 1)
-    {
-        hash_combine(result, this->tuplet);
-    }
-
-    return result;
-}

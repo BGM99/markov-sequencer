@@ -1,20 +1,3 @@
-/*
-    This file is part of Helio music sequencer.
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
-
 #pragma once
 
 #include "Common.h"
@@ -28,18 +11,44 @@
 
 class MarkovModel {
 
+    template <class T>
+    static void hash_combine(std::size_t& seed, const T& v) noexcept
+    {
+        std::hash<T> hasher;
+        seed ^= hasher(v) + 0x9e3779b9 + (seed<<6) + (seed>>2);
+    }
 
-    struct PairHash {
-        std::size_t operator()(const std::pair<Note, Note>& pair) const {
-            std::size_t h1 = pair.first.hashCode();
-            std::size_t h2 = pair.second.hashCode();
-            return h1 ^ (h2 << 1);
+    struct NoteHash {
+        std::size_t operator()(const Note & note) const {
+            HashCode result = 0;
+            hash_combine(result, note.getKey());
+            //hash_combine(result, int(this->beat * Globals::ticksPerBeat));
+            hash_combine(result, int(note.getLength() * Globals::ticksPerBeat));
+            return result;
         }
     };
 
-    struct SingleHash {
-        std::size_t operator()(const Note & note) const {
-            return note.hashCode();
+    struct PairHash {
+        std::size_t operator()(const std::pair<Note, Note>& pair) const {
+            HashCode result = 0;
+            NoteHash hasher;
+            hash_combine(result, hasher(pair.first));
+            hash_combine(result, hasher(pair.second));
+            return result;
+        }
+    };
+
+    struct NoteEqual {
+        bool operator()(const Note &lhs, const Note &rhs) const
+        {
+            return lhs.getKey() == rhs.getKey() && lhs.getLength() == rhs.getLength();
+        }
+    };
+
+    struct PairEqual {
+        bool operator()(const std::pair<Note, Note> &pair1, const std::pair<Note, Note> &pair2) const {
+            NoteEqual equal;
+            return equal(pair1.first, pair2.first) && equal(pair1.second, pair2.second);
         }
     };
 
@@ -49,19 +58,19 @@ class MarkovModel {
 
     // Counts the Transitions from a Sound Object to another
     // {from, to} -> count
-    tsl::hopscotch_map<std::pair<Note, Note>, int, PairHash> TransitionFrequency;
+    std::unordered_map<std::pair<Note, Note>, int, PairHash, PairEqual> TransitionFrequency;
 
     // Probability matrix based on TransitionFrequency
     dsp::Matrix<float>* StateMatrix;
 
     // Counts how often a sound object appears
     // {sound} -> count
-    tsl::hopscotch_map<Note, int, SingleHash> SoundFrequency;
+    std::unordered_map<Note, int, NoteHash, NoteEqual> SoundFrequency;
 
     // Probability vector based on SoundFrequency and states
     dsp::Matrix<float>* InitialStateVector;
 
-    std::unordered_set<Note, SingleHash> states;
+    std::unordered_set<Note, NoteHash, NoteEqual> states;
 
     // Number of all sound objects or states of the model
     int Size() const {
