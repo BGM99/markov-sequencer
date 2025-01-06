@@ -9,14 +9,15 @@ MarkovModel::MarkovModel() :
 MarkovModel::~MarkovModel()
 {
     delete StateMatrix;
+    delete InitialStateVector;
 }
 
 void MarkovModel::generateFromSequence(Array<Note> sortedSelection)
 {
     for (int i = 0; i < sortedSelection.size() - 1; ++i)
     {
-        auto prev = sortedSelection.getReference(i);
-        auto next = sortedSelection.getReference(i + 1);
+        Note prev = sortedSelection.getReference(i);
+        Note next = sortedSelection.getReference(i + 1);
 
         this->TransitionFrequency[{prev, next}] += 1;
 
@@ -27,9 +28,6 @@ void MarkovModel::generateFromSequence(Array<Note> sortedSelection)
 
     this->states.insert(sortedSelection.getReference(sortedSelection.size() - 1));
     this->SoundFrequency[sortedSelection.getReference(sortedSelection.size() - 1)] += 1;
-
-    //std::vector<Note> v;
-    //std::copy(this->states.begin(), this->states.end(), back_inserter(v));
 
     //this->builtMatrix();
     this->builtInitialVector();
@@ -67,6 +65,6 @@ void MarkovModel::builtInitialVector()
         auto it = this->SoundFrequency.begin();
         std::advance(it, i);
         (*this->InitialStateVector)(0, i) = it->second / sum;
-        prob[i] = it->second / sum;
+        prob[i] = (float) it->second / sum;
     }
 }
