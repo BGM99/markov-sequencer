@@ -83,6 +83,6 @@ class MarkovModel {
     //loadFromFile
 
     private:
-    void builtMatrix();
-    void builtInitialVector();
+    void buildMatrix();
+    void buildInitialVector();
 };
