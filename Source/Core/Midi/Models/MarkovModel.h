@@ -141,7 +141,7 @@ class MarkovModel {
     void generateMultiNoteChain(const Array<Note>& sortedSelection);
 
     // Collects all Notes that start at the same beat in an array
-    static std::vector<Note> getAllNotesFromBeat(const Array<Note>& sortedSelection, int index);
+    static std::vector<Note> getAllNotesFromBeat(const Array<Note>& sortedSelection, int& index);
 
     void buildMatrix();
     void buildInitialVector();
