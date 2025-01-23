@@ -14,7 +14,7 @@ MarkovModel::~MarkovModel()
 
 void MarkovModel::generateFromSequence(Array<Note> sortedSelection)
 {
-    if (true)
+    if (false)
     {
         generateSingleNoteChain(sortedSelection);
     } else
@@ -60,23 +60,26 @@ void MarkovModel::generateSingleNoteChain(const Array<Note>& sortedSelection)
 
 void MarkovModel::generateMultiNoteChain(const Array<Note>& sortedSelection)
 {
-    for (int i = 0; i < sortedSelection.size() - 1; ++i)
+    int i = 0;
+    while (i <= sortedSelection.size() - 1)
     {
-        Note startNote = sortedSelection.getReference(i);
-        std::vector<Note> prev = getAllNotesFromBeat(sortedSelection, startNote.getBeat());
-        std::vector<Note> next = getAllNotesFromBeat(sortedSelection, startNote.getBeat() + 1);
+        std::vector<Note> prev = getAllNotesFromBeat(sortedSelection, i);
+        std::vector<Note> next = getAllNotesFromBeat(sortedSelection, i);
+        if (i < sortedSelection.size()) {
+            i -= next.size();
+        } else {
+            this->SoundFrequency[next] += 1;
+            this->States.insert(next);
+        }
 
         this->TransitionFrequency[{prev, next}] += 1;
 
         this->SoundFrequency[prev] += 1;
-
         this->States.insert(prev);
     }
-
-    this->States.insert(getAllNotesFromBeat(sortedSelection, sortedSelection.size() - 1));
 }
 
-std::vector<Note> MarkovModel::getAllNotesFromBeat(const Array<Note>& sortedSelection, int index)
+std::vector<Note> MarkovModel::getAllNotesFromBeat(const Array<Note>& sortedSelection, int& index)
 {
     std::vector<Note> chord;
     Note prev = sortedSelection.getReference(index);
@@ -87,7 +90,12 @@ std::vector<Note> MarkovModel::getAllNotesFromBeat(const Array<Note>& sortedSele
     for (int b = index + 2; prev.getBeat() == next.getBeat(); ++b)
     {
         chord.push_back(next);
-        next = sortedSelection.getReference(b);
+        index = b;
+        if (b <= sortedSelection.size() - 1) {
+            next = sortedSelection.getReference(b);
+        } else {
+            break;
+        }
     }
 
     return chord;
