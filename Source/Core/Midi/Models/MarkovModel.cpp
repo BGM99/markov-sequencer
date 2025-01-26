@@ -82,20 +82,20 @@ void MarkovModel::generateMultiNoteChain(const Array<Note>& sortedSelection)
 std::vector<Note> MarkovModel::getAllNotesFromBeat(const Array<Note>& sortedSelection, int& index)
 {
     std::vector<Note> chord;
-    Note prev = sortedSelection.getReference(index);
-    Note next = sortedSelection.getReference(index + 1);
+    Note note = sortedSelection.getReference(index);
+    chord.push_back(note);
+    float beat = note.getBeat();
 
-    chord.push_back(prev);
-
-    for (int b = index + 2; prev.getBeat() == next.getBeat(); ++b)
+    while (beat == note.getBeat())
     {
-        chord.push_back(next);
-        index = b;
-        if (b <= sortedSelection.size() - 1) {
-            next = sortedSelection.getReference(b);
+        index++;
+        if (index <= sortedSelection.size() - 1 &&
+            sortedSelection.getReference(index).getBeat() == beat) {
+            note = sortedSelection.getReference(index);
         } else {
             break;
         }
+        chord.push_back(note);
     }
 
     return chord;
