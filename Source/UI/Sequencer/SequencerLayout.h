@@ -29,6 +29,7 @@ class EditorPanelsSwitcher;
 class SequencerSidebarRight;
 class SequencerSidebarLeft;
 class Clip;
+class MarkovEditorComponent;
 
 #include "RenderFormat.h"
 
@@ -91,6 +92,8 @@ private:
     UniquePointer<SequencerSidebarRight> rollToolsSidebar;
     UniquePointer<Component> leftSidebarShadow;
     UniquePointer<Component> rightSidebarShadow;
+
+    UniquePointer<MarkovEditorComponent> markovEditor;
 
     void proceedToRenderDialog(RenderFormat format);
     UniquePointer<FileChooser> renderTargetFileChooser;
