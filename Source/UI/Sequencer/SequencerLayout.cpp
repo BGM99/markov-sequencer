@@ -49,6 +49,8 @@
 #include "ComponentIDs.h"
 #include "CommandIDs.h"
 
+#include <MarkovEditor/MarkovEditorComponent.h>
+
 //===----------------------------------------------------------------------===//
 // Rolls container responsible for switching between piano and pattern roll
 //===----------------------------------------------------------------------===//
@@ -544,6 +546,9 @@ SequencerLayout::SequencerLayout(ProjectNode &parentProject) :
     this->pianoRoll->addRollListener(this->bottomEditorsScroller.get());
     this->patternRoll->addRollListener(this->bottomEditorsScroller.get());
 
+    this->markovEditor = make<MarkovEditorComponent>();
+    this->addAndMakeVisible(this->markovEditor.get());
+
     this->scrollerShadow = make<ShadowUpwards>(ShadowType::Light);
     
     // a container with 2 rolls and 2 types of bottom scroller panel
@@ -599,6 +604,8 @@ SequencerLayout::~SequencerLayout()
 
     this->pianoRoll = nullptr;
     this->pianoViewport = nullptr;
+
+    this->markovEditor = nullptr;
 }
 
 void SequencerLayout::showPatternEditor()

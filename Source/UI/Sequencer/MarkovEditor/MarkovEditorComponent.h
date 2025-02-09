@@ -10,12 +10,14 @@
 
 #pragma once
 
+#include <ColourIDs.h>
+#include <Common.h>
 #include <JuceHeader.h>
 
 //==============================================================================
 /*
 */
-class MarkovEditorComponent  : public juce::Component
+class MarkovEditorComponent final : public Component
 {
 public:
     MarkovEditorComponent();
@@ -26,4 +28,7 @@ public:
 
 private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MarkovEditorComponent)
+
+  const Colour borderLineDark = findDefaultColour(ColourIDs::TrackScroller::borderLineDark);
+  const Colour borderLineLight = findDefaultColour(ColourIDs::TrackScroller::borderLineLight);
 };

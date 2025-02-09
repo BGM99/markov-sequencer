@@ -11,6 +11,8 @@
 #include <JuceHeader.h>
 #include "MarkovEditorComponent.h"
 
+#include <HelioTheme.h>
+
 //==============================================================================
 MarkovEditorComponent::MarkovEditorComponent()
 {
@@ -25,12 +27,15 @@ MarkovEditorComponent::~MarkovEditorComponent()
 
 void MarkovEditorComponent::paint (juce::Graphics& g)
 {
-    /* This demo code just fills the component's background and
-       draws some placeholder text to get you started.
+    const auto &theme = HelioTheme::getCurrentTheme();
+    g.setFillType({ theme.getSidebarBackground(), {} });
+    g.fillRect(this->getLocalBounds());
 
-       You should replace everything in this method with your own
-       drawing code..
-    */
+    g.setColour(this->borderLineDark);
+    g.fillRect(0, 0, this->getWidth(), 1);
+
+    g.setColour(this->borderLineLight);
+    g.fillRect(0, 1, this->getWidth(), 1);
 
     g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));   // clear the background
 
@@ -38,7 +43,7 @@ void MarkovEditorComponent::paint (juce::Graphics& g)
     g.drawRect (getLocalBounds(), 1);   // draw an outline around the component
 
     g.setColour (juce::Colours::white);
-    g.setFont (juce::FontOptions (14.0f));
+    g.setFont (juce::Font (14.0f));
     g.drawText ("MarkovEditorComponent", getLocalBounds(),
                 juce::Justification::centred, true);   // draw some placeholder text
 }
