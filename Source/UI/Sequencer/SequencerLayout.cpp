@@ -559,8 +559,8 @@ SequencerLayout::SequencerLayout(ProjectNode &parentProject) :
     this->pianoRoll->addRollListener(this->bottomEditorsScroller.get());
     this->patternRoll->addRollListener(this->bottomEditorsScroller.get());
 
-    this->markovEditor = make<MarkovEditorComponent>();
-    this->addAndMakeVisible(this->markovEditor.get());
+    this->markovEditorPanel = make<MarkovEditorPanel>(this->project);
+    this->addAndMakeVisible(this->markovEditorPanel.get());
 
     this->scrollerShadow = make<ShadowUpwards>(ShadowType::Light);
     
@@ -618,7 +618,7 @@ SequencerLayout::~SequencerLayout()
     this->pianoRoll = nullptr;
     this->pianoViewport = nullptr;
 
-    this->markovEditor = nullptr;
+    this->markovEditorPanel = nullptr;
 }
 
 void SequencerLayout::showPatternEditor()
@@ -673,6 +673,8 @@ RollBase *SequencerLayout::getRoll() const noexcept
 void SequencerLayout::resized()
 {
     auto localBounds = this->getLocalBounds();
+
+    this->markovEditorPanel->setBounds(localBounds.removeFromBottom(Globals::UI::editorPanelHeight));
 
     const auto leftSidebarWidth = this->rollNavigationSidebar->getWidth();
     const auto rightSidebarWidth = this->rollToolsSidebar->getWidth();

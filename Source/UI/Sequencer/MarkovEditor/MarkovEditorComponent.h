@@ -14,21 +14,30 @@
 #include <Common.h>
 #include <JuceHeader.h>
 
+class ProjectNode;
 //==============================================================================
 /*
 */
-class MarkovEditorComponent final : public Component
+class MarkovEditorPanel final : public Component,
+private ListBoxModel
 {
 public:
-    MarkovEditorComponent();
-    ~MarkovEditorComponent() override;
+    MarkovEditorPanel(ProjectNode &project);
+    ~MarkovEditorPanel() override;
 
     void paint (juce::Graphics&) override;
     void resized() override;
 
+    void paintListBoxItem(int, Graphics &, int, int, bool) override {}
+    int getNumRows() override;
+
 private:
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MarkovEditorComponent)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MarkovEditorPanel)
+
+  ProjectNode &project;
 
   const Colour borderLineDark = findDefaultColour(ColourIDs::TrackScroller::borderLineDark);
   const Colour borderLineLight = findDefaultColour(ColourIDs::TrackScroller::borderLineLight);
+
+  UniquePointer<ListBox> listBox;
 };
