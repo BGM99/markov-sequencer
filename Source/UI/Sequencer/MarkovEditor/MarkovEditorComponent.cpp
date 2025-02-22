@@ -27,7 +27,8 @@ MarkovEditorPanel::MarkovEditorPanel(ProjectNode &project) : project(project)
     this->listBox->getViewport()->setScrollOnDragMode(Viewport::ScrollOnDragMode::never);
     this->addAndMakeVisible(this->listBox.get());
 
-    this->setSize(350, 36);
+    this->items.push_back({1.f, 1.f});
+    this->listBox->updateContent();
 }
 
 MarkovEditorPanel::~MarkovEditorPanel()
@@ -53,7 +54,7 @@ void MarkovEditorPanel::paint (juce::Graphics& g)
     g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));   // clear the background
 
     g.setColour (juce::Colours::grey);
-    //g.drawRect (getLocalBounds(), 1);   // draw an outline around the component
+    g.drawRect (getLocalBounds(), 1);   // draw an outline around the component
 
     g.setColour (juce::Colours::white);
     g.setFont (juce::Font (14.0f));
@@ -66,18 +67,20 @@ void MarkovEditorPanel::resized()
     // This method is where you should set the bounds of any child
     // components that your component contains..
 
-
     constexpr auto toolbarSize = Globals::UI::sidebarWidth;
     constexpr auto headerSize = Globals::UI::rollHeaderHeight;
     constexpr auto footerSize = Globals::UI::sidebarFooterHeight;
 
-    this->listBox->setBounds(this->getWidth() - toolbarSize,
-        headerSize - 1,
-        toolbarSize,
-        this->getHeight() - headerSize - footerSize + 1);
+    this->listBox->setBounds(getLocalBounds());
+}
+void MarkovEditorPanel::paintListBoxItem(int rowNumber, Graphics & g, int width, int height, bool isSelected)
+{
+    const auto &theme = HelioTheme::getCurrentTheme();
+    g.setFillType({ theme.getPageBackgroundB(), {} });
+    g.fillRect(0,0, width, height);
 }
 
 int MarkovEditorPanel::getNumRows()
 {
-    return 0;
+    return items.size();
 }

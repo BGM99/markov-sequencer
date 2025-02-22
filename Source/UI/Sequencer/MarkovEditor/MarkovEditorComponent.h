@@ -13,6 +13,9 @@
 #include <ColourIDs.h>
 #include <Common.h>
 #include <JuceHeader.h>
+#include "Midi/Models/MarkovModel.h"
+#include "Note.h"
+#include <variant>
 
 class ProjectNode;
 //==============================================================================
@@ -21,6 +24,8 @@ class ProjectNode;
 class MarkovEditorPanel final : public Component,
 private ListBoxModel
 {
+  using Sound = std::variant<Note, std::vector<Note>, float>;
+
 public:
     MarkovEditorPanel(ProjectNode &project);
     ~MarkovEditorPanel() override;
@@ -28,7 +33,7 @@ public:
     void paint (juce::Graphics&) override;
     void resized() override;
 
-    void paintListBoxItem(int, Graphics &, int, int, bool) override {}
+    void paintListBoxItem(int rowNumber, Graphics & g, int width, int height, bool isSelected) override;
     int getNumRows() override;
 
 private:
@@ -40,4 +45,5 @@ private:
   const Colour borderLineLight = findDefaultColour(ColourIDs::TrackScroller::borderLineLight);
 
   UniquePointer<ListBox> listBox;
+  std::vector<std::pair<float, Sound>> items;
 };
