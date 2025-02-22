@@ -22,7 +22,7 @@ class ProjectNode;
 /*
 */
 class MarkovEditorPanel final : public Component,
-private ListBoxModel
+private TableListBoxModel
 {
   using Sound = std::variant<Note, std::vector<Note>, float>;
 
@@ -33,17 +33,21 @@ public:
     void paint (juce::Graphics&) override;
     void resized() override;
 
-    void paintListBoxItem(int rowNumber, Graphics & g, int width, int height, bool isSelected) override;
-    int getNumRows() override;
+    void paintCell(Graphics &, int rowNumber, int columnId, int width, int height, bool rowIsSelected) override;
+    void paintRowBackground(Graphics &, int rowNumber, int width, int height, bool rowIsSelected) override;
+    int getNumRows() override { return 1; }
 
 private:
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MarkovEditorPanel)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MarkovEditorPanel)
 
-  ProjectNode &project;
+    void createColumns(int n);
+    static String midiNoteToString(int midiKey);
+
+    ProjectNode &project;
 
   const Colour borderLineDark = findDefaultColour(ColourIDs::TrackScroller::borderLineDark);
   const Colour borderLineLight = findDefaultColour(ColourIDs::TrackScroller::borderLineLight);
 
-  UniquePointer<ListBox> listBox;
+  UniquePointer<TableListBox> listBox;
   std::vector<std::pair<float, Sound>> items;
 };

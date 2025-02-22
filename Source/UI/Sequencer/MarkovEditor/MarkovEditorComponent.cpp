@@ -14,21 +14,21 @@
 #include <HelioTheme.h>
 #include "MenuItemComponent.h"
 
+#include <SerializationKeys.h>
+
 //==============================================================================
 MarkovEditorPanel::MarkovEditorPanel(ProjectNode &project) : project(project)
 {
     this->setPaintingIsUnclipped(true);
 
-    this->listBox = make<ListBox>();
+    this->listBox = make<TableListBox>();
     this->listBox->setModel(this);
     this->listBox->setMultipleSelectionEnabled(false);
-    this->listBox->setRowHeight(Globals::UI::sidebarRowHeight);
+    this->listBox->setRowHeight(45);
+    this->listBox->getHeader().setVisible(false);
     this->listBox->getViewport()->setScrollBarPosition(false, true);
     this->listBox->getViewport()->setScrollOnDragMode(Viewport::ScrollOnDragMode::never);
     this->addAndMakeVisible(this->listBox.get());
-
-    this->items.push_back({1.f, 1.f});
-    this->listBox->updateContent();
 }
 
 MarkovEditorPanel::~MarkovEditorPanel()
@@ -73,14 +73,82 @@ void MarkovEditorPanel::resized()
 
     this->listBox->setBounds(getLocalBounds());
 }
-void MarkovEditorPanel::paintListBoxItem(int rowNumber, Graphics & g, int width, int height, bool isSelected)
+void MarkovEditorPanel::paintCell(Graphics & g, int rowNumber, int columnId, int width, int height, bool rowIsSelected)
 {
-    const auto &theme = HelioTheme::getCurrentTheme();
-    g.setFillType({ theme.getPageBackgroundB(), {} });
-    g.fillRect(0,0, width, height);
+    float prob = this->items[rowNumber].first;
+    Sound sound = this->items[rowNumber].second;
+
+    String probText = "";
+    String noteNames = "";
+
+    if (std::holds_alternative<Note>(sound))
+    {
+        Note note = std::get<Note>(sound);
+        noteNames.append(midiNoteToString(note.getKey()), 5);
+        noteNames.append(std::to_string(note.getLength()), 5);
+        
+    } else if (std::holds_alternative<std::vector<Note>>(sound))
+    {
+        for (const auto &note : std::get<std::vector<Note>>(sound))
+        {
+            noteNames.append(midiNoteToString(note.getKey()), 5);
+            noteNames.append(", ", 5);
+            noteNames.append(std::to_string(note.getLength()), 5);
+        }
+    } else if (std::holds_alternative<float>(sound))
+    {
+        noteNames.append("Rest, ", 10);
+        noteNames.append(std::to_string(std::get<float>(sound)), 4);
+    }
+
+    probText.append(std::to_string(prob), 4);
+    probText.append("%", 4);
+
+    g.setColour (juce::Colours::white);
+    g.setFont (Globals::UI::Fonts::M);
+    g.drawText (probText, 0,0, width, height,
+                juce::Justification::centred, true);
+
+    g.setFont (Globals::UI::Fonts::XS);
+    g.drawText (noteNames, 0,0, width, height,
+                juce::Justification::centredBottom, true);
 }
 
-int MarkovEditorPanel::getNumRows()
+void MarkovEditorPanel::paintRowBackground(Graphics &g, int rowNumber, int width, int height, bool rowIsSelected)
 {
-    return items.size();
+    // const auto &theme = HelioTheme::getCurrentTheme();
+    // g.setFillType({theme.getPageBackgroundB(), {}});
+    // g.fillRect(0, 0, width, height);
+
+    g.setColour(this->borderLineDark);
+    g.fillRect(0, 0, width, 1);
+
+    g.setColour(this->borderLineLight);
+    g.fillRect(0, 1, width, 1);
+
+    g.fillAll(juce::Colours::darkgrey);
+}
+
+void MarkovEditorPanel::createColumns(int n)
+{
+    this->listBox->getHeader().removeAllColumns();
+
+    for (int i = 0; i < n; i++)
+    {
+        this->listBox->getHeader().addColumn("", n, 150);
+    }
+
+    this->listBox->updateContent();
+}
+
+String MarkovEditorPanel::midiNoteToString(int midiKey) {
+    if (midiKey < 0 || midiKey > 127) {
+        return "Invalid MIDI key";
+    }
+
+    const std::string noteNames[] = {"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
+    int noteIndex = midiKey % 12;
+    int octave = (midiKey / 12) - 1;
+
+    return noteNames[noteIndex] + std::to_string(octave);
 }
