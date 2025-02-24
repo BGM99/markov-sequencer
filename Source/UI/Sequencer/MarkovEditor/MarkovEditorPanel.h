@@ -15,6 +15,9 @@
 #include <JuceHeader.h>
 #include "Midi/Models/MarkovModel.h"
 #include "Note.h"
+
+#include <PianoRoll.h>
+#include <RollBase.h>
 #include <variant>
 
 class ProjectNode;
@@ -27,7 +30,7 @@ private TableListBoxModel
   using Sound = std::variant<Note, std::vector<Note>, float>;
 
 public:
-    MarkovEditorPanel(ProjectNode &project);
+    MarkovEditorPanel(ProjectNode &project, PianoRoll* roll);
     ~MarkovEditorPanel() override;
 
     void paint (juce::Graphics&) override;
@@ -37,6 +40,10 @@ public:
     void paintRowBackground(Graphics &, int rowNumber, int width, int height, bool rowIsSelected) override;
     int getNumRows() override { return 1; }
 
+    void generateModel();
+    void loadModelFromFile();
+    void saveModelToFile();
+
 private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MarkovEditorPanel)
 
@@ -44,10 +51,22 @@ private:
     static String midiNoteToString(int midiKey);
 
     ProjectNode &project;
+    PianoRoll* roll;
 
-  const Colour borderLineDark = findDefaultColour(ColourIDs::TrackScroller::borderLineDark);
-  const Colour borderLineLight = findDefaultColour(ColourIDs::TrackScroller::borderLineLight);
+    const Colour borderLineDark = findDefaultColour(ColourIDs::TrackScroller::borderLineDark);
+    const Colour borderLineLight = findDefaultColour(ColourIDs::TrackScroller::borderLineLight);
 
-  UniquePointer<TableListBox> listBox;
-  std::vector<std::pair<float, Sound>> items;
+    UniquePointer<TableListBox> listBox;
+    std::vector<std::pair<float, int>> items;
+
+    MarkovModel currentModel;
+    // -1 for initial state
+    int currentState = -1;
+    std::unordered_map<int, std::vector<std::pair<float, int>>> rowVector;
+
+    // Model Controls
+    UniquePointer<Label> modelLabel;
+    UniquePointer<TextButton> generateButton;
+    UniquePointer<TextButton> loadModelButton;
+    UniquePointer<TextButton> saveModelButton;
 };

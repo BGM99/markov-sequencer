@@ -9,7 +9,7 @@
 */
 
 #include <JuceHeader.h>
-#include "EditorControlPanel.h"
+#include "EditorControls.h"
 
 //==============================================================================
 EditorControlPanel::EditorControlPanel()
@@ -38,7 +38,7 @@ void EditorControlPanel::paint (juce::Graphics& g)
     g.drawRect (getLocalBounds(), 1);   // draw an outline around the component
 
     g.setColour (juce::Colours::white);
-    g.setFont (juce::FontOptions (14.0f));
+    g.setFont (juce::Font (14.0f));
     g.drawText ("EditorControlPanel", getLocalBounds(),
                 juce::Justification::centred, true);   // draw some placeholder text
 }

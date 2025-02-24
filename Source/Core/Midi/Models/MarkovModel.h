@@ -120,7 +120,7 @@ class MarkovModel {
     dsp::Matrix<float>* InitialStateVector;
 
     // All Sound Objects of the Chain
-    std::unordered_set<Sound, SoundHash, SoundEqual> States;
+    std::set<Sound, SoundEqual> States;
 
     // Number of all sound objects or states of the model
     int Size() const {

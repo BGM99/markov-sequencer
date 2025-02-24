@@ -9,7 +9,7 @@
 */
 
 #include <JuceHeader.h>
-#include "MarkovEditorComponent.h"
+#include "MarkovEditorPanel.h"
 #include "ProjectNode.h"
 #include <HelioTheme.h>
 #include "MenuItemComponent.h"
@@ -17,7 +17,7 @@
 #include <SerializationKeys.h>
 
 //==============================================================================
-MarkovEditorPanel::MarkovEditorPanel(ProjectNode &project) : project(project)
+MarkovEditorPanel::MarkovEditorPanel(ProjectNode &project, PianoRoll* roll) : project(project), roll(roll)
 {
     this->setPaintingIsUnclipped(true);
 
@@ -29,6 +29,35 @@ MarkovEditorPanel::MarkovEditorPanel(ProjectNode &project) : project(project)
     this->listBox->getViewport()->setScrollBarPosition(false, true);
     this->listBox->getViewport()->setScrollOnDragMode(Viewport::ScrollOnDragMode::never);
     this->addAndMakeVisible(this->listBox.get());
+
+    this->modelLabel = make<Label>(String("No Model loaded"));
+    this->modelLabel->setFont(Globals::UI::Fonts::L);
+    this->modelLabel->setBoundsInset(BorderSize(5));
+    this->addAndMakeVisible(modelLabel.get());
+
+    this->generateButton = make<TextButton>();
+    this->generateButton->setButtonText("Generate Model");
+    this->generateButton->setColour (juce::TextButton::buttonColourId, juce::Colours::grey);
+    this->generateButton->setColour (juce::Label::textColourId, juce::Colours::white);
+    this->generateButton->setBoundsInset(BorderSize(5));
+    this->generateButton->onClick = [this] { generateModel(); };
+    this->addAndMakeVisible(generateButton.get());
+
+    this->loadModelButton = make<TextButton>();
+    this->loadModelButton->setButtonText("Load Model");
+    this->loadModelButton->setColour (juce::TextButton::buttonColourId, juce::Colours::grey);
+    this->loadModelButton->setColour (juce::Label::textColourId, juce::Colours::white);
+    this->loadModelButton->setBoundsInset(BorderSize(5));
+    this->loadModelButton->onClick = [this] { loadModelFromFile(); };
+    this->addAndMakeVisible(loadModelButton.get());
+
+    this->saveModelButton = make<TextButton>();
+    this->saveModelButton->setButtonText("Save Model");
+    this->saveModelButton->setColour (juce::TextButton::buttonColourId, juce::Colours::grey);
+    this->saveModelButton->setColour (juce::Label::textColourId, juce::Colours::white);
+    this->saveModelButton->setBoundsInset(BorderSize(5));
+    this->saveModelButton->onClick = [this] { saveModelToFile(); };
+    this->addAndMakeVisible(saveModelButton.get());
 }
 
 MarkovEditorPanel::~MarkovEditorPanel()
@@ -71,12 +100,25 @@ void MarkovEditorPanel::resized()
     constexpr auto headerSize = Globals::UI::rollHeaderHeight;
     constexpr auto footerSize = Globals::UI::sidebarFooterHeight;
 
-    this->listBox->setBounds(getLocalBounds());
+    Rectangle<int> localBounds = getLocalBounds();
+
+    Rectangle<int> modelControlBounds = localBounds.removeFromLeft(150);
+    modelLabel.get()->setBounds(modelControlBounds.removeFromTop(20));
+    generateButton.get()->setBounds(modelControlBounds.removeFromTop(20));
+    loadModelButton.get()->setBounds(modelControlBounds.removeFromTop(20));
+    saveModelButton.get()->setBounds(modelControlBounds.removeFromTop(20));
+
+    Rectangle<int> editorControlBounds = modelControlBounds.removeFromRight(100);
+
+    this->listBox->setBounds(localBounds);
 }
 void MarkovEditorPanel::paintCell(Graphics & g, int rowNumber, int columnId, int width, int height, bool rowIsSelected)
 {
-    float prob = this->items[rowNumber].first;
-    Sound sound = this->items[rowNumber].second;
+    auto entry = this->rowVector[this->currentState][rowNumber];
+    float prob = entry.first;
+    auto it = this->currentModel.States.begin();
+    std::advance(it, entry.second);
+    Sound sound = *it;
 
     String probText = "";
     String noteNames = "";
@@ -112,6 +154,10 @@ void MarkovEditorPanel::paintCell(Graphics & g, int rowNumber, int columnId, int
     g.setFont (Globals::UI::Fonts::XS);
     g.drawText (noteNames, 0,0, width, height,
                 juce::Justification::centredBottom, true);
+
+    Rectangle<int> bounds = this->listBox->getCellPosition(columnId, 1, true);
+    g.setColour (juce::Colours::white);
+    g.drawRect (bounds, 1);   // draw an outline around the component
 }
 
 void MarkovEditorPanel::paintRowBackground(Graphics &g, int rowNumber, int width, int height, bool rowIsSelected)
@@ -127,6 +173,58 @@ void MarkovEditorPanel::paintRowBackground(Graphics &g, int rowNumber, int width
     g.fillRect(0, 1, width, 1);
 
     g.fillAll(juce::Colours::darkgrey);
+}
+
+void MarkovEditorPanel::generateModel()
+{
+    const auto * sequence = dynamic_cast<PianoSequence *>(this->roll->getActiveTrack().get()->getSequence());
+    if (sequence == nullptr)
+    {
+        return;
+    }
+
+    // sort the selection
+    Array<Note> sortedSelection;
+    for (int i = 0; i < sequence->size(); ++i)
+    {
+        const auto &note = sequence->getNoteUnchecked(i);
+        sortedSelection.addSorted(note, note);
+    }
+
+    auto mm = new MarkovModel();
+    mm->generateFromSequence(sortedSelection);
+    this->currentModel = *mm;
+
+    for (int i = 0; i < mm->Size(); ++i)
+    {
+        auto itRow = mm->States.begin();
+        std::advance(itRow, i);
+
+        std::pair max = {0.f, -1};
+        float lastMax = 100.f;
+
+        while (this->rowVector[i].size() < mm->Size())
+        {
+            for (int j = 0; j < mm->Size(); ++j) {
+                if (max.first < (*mm->StateMatrix)(i, j) && (*mm->StateMatrix)(i, j) < lastMax)
+                {
+                    max = {(*mm->StateMatrix)(i, j), j};
+                }
+            }
+            this->rowVector[i].push_back({max.first, max.second});
+            lastMax = max.first;
+        }
+    }
+
+    this->currentState = -1;
+
+    createColumns(mm->Size());
+}
+void MarkovEditorPanel::loadModelFromFile()
+{
+}
+void MarkovEditorPanel::saveModelToFile()
+{
 }
 
 void MarkovEditorPanel::createColumns(int n)
