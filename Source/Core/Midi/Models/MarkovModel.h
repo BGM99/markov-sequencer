@@ -119,8 +119,10 @@ class MarkovModel {
     // Probability vector based on SoundFrequency and states
     dsp::Matrix<float>* InitialStateVector;
 
-    // All Sound Objects of the Chain
-    std::set<Sound, SoundEqual> States;
+    // Set to register all sounds
+    std::unordered_set<Sound, SoundHash, SoundEqual> StatesSet;
+    // All sound objects of the chain
+    std::vector<Sound> States;
 
     // Number of all sound objects or states of the model
     int Size() const {

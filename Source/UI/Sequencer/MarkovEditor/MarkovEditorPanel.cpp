@@ -178,15 +178,12 @@ void MarkovEditorPanel::paintRowBackground(Graphics &g, int rowNumber, int width
 void MarkovEditorPanel::generateModel()
 {
     const auto * sequence = dynamic_cast<PianoSequence *>(this->roll->getActiveTrack().get()->getSequence());
-    if (sequence == nullptr)
-    {
+    if (sequence == nullptr) {
         return;
     }
 
-    // sort the selection
     Array<Note> sortedSelection;
-    for (int i = 0; i < sequence->size(); ++i)
-    {
+    for (int i = 0; i < sequence->size(); ++i) {
         const auto &note = sequence->getNoteUnchecked(i);
         sortedSelection.addSorted(note, note);
     }
@@ -195,31 +192,33 @@ void MarkovEditorPanel::generateModel()
     mm->generateFromSequence(sortedSelection);
     this->currentModel = *mm;
 
-    for (int i = 0; i < mm->Size(); ++i)
-    {
-        auto itRow = mm->States.begin();
-        std::advance(itRow, i);
-
-        std::pair max = {0.f, -1};
-        float lastMax = 100.f;
-
-        while (this->rowVector[i].size() < mm->Size())
-        {
-            for (int j = 0; j < mm->Size(); ++j) {
-                if (max.first < (*mm->StateMatrix)(i, j) && (*mm->StateMatrix)(i, j) < lastMax)
-                {
-                    max = {(*mm->StateMatrix)(i, j), j};
-                }
+    for (int r = 0; r < mm->Size(); ++r) {
+        for (int c = 0; c < mm->Size(); ++c) {
+            if ((*mm->StateMatrix)(r, c) != 0.0f) {
+                this->rowVector[r].emplace_back((*mm->StateMatrix)(r, c), c);
             }
-            this->rowVector[i].push_back({max.first, max.second});
-            lastMax = max.first;
+        }
+
+        std::sort(this->rowVector[r].begin(), this->rowVector[r].end(), [](const auto& a, const auto& b) {
+            return a.first > b.first;
+        });
+    }
+
+    for (int c = 0; c < mm->Size(); ++c) {
+        if ((*mm->InitialStateVector)(0, c) != 0.0f) {
+            this->rowVector[-1].emplace_back((*mm->InitialStateVector)(0, c), c);
         }
     }
+
+    std::sort(this->rowVector[-1].begin(), this->rowVector[-1].end(), [](const auto& a, const auto& b) {
+        return a.first > b.first;
+    });
 
     this->currentState = -1;
 
     createColumns(mm->Size());
 }
+
 void MarkovEditorPanel::loadModelFromFile()
 {
 }
