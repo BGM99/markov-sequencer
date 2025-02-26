@@ -24,7 +24,7 @@ MarkovEditorPanel::MarkovEditorPanel(ProjectNode &project, PianoRoll* roll) : pr
     this->listBox = make<TableListBox>();
     this->listBox->setModel(this);
     this->listBox->setMultipleSelectionEnabled(false);
-    this->listBox->setRowHeight(45);
+    this->listBox->setRowHeight(65);
     this->listBox->getHeader().setVisible(false);
     this->listBox->getViewport()->setScrollBarPosition(false, true);
     this->listBox->getViewport()->setScrollOnDragMode(Viewport::ScrollOnDragMode::never);
@@ -114,11 +114,9 @@ void MarkovEditorPanel::resized()
 }
 void MarkovEditorPanel::paintCell(Graphics & g, int rowNumber, int columnId, int width, int height, bool rowIsSelected)
 {
-    auto entry = this->rowVector[this->currentState][rowNumber];
+    auto entry = this->rowVector[this->currentState][columnId - 1];
     float prob = entry.first;
-    auto it = this->currentModel.States.begin();
-    std::advance(it, entry.second);
-    Sound sound = *it;
+    Sound sound = this->currentModel.States[entry.second];
 
     String probText = "";
     String noteNames = "";
@@ -155,9 +153,10 @@ void MarkovEditorPanel::paintCell(Graphics & g, int rowNumber, int columnId, int
     g.drawText (noteNames, 0,0, width, height,
                 juce::Justification::centredBottom, true);
 
-    Rectangle<int> bounds = this->listBox->getCellPosition(columnId, 1, true);
-    g.setColour (juce::Colours::white);
-    g.drawRect (bounds, 1);   // draw an outline around the component
+    auto colIsSelected = false;
+
+    g.setColour (colIsSelected ? Colours::darkgrey : Colours::white);
+    g.drawRect (0, 0, width, height, 1);   // draw an outline around the component
 }
 
 void MarkovEditorPanel::paintRowBackground(Graphics &g, int rowNumber, int width, int height, bool rowIsSelected)
@@ -172,7 +171,7 @@ void MarkovEditorPanel::paintRowBackground(Graphics &g, int rowNumber, int width
     g.setColour(this->borderLineLight);
     g.fillRect(0, 1, width, 1);
 
-    g.fillAll(juce::Colours::darkgrey);
+    g.fillAll(Colours::darkgrey);
 }
 
 void MarkovEditorPanel::generateModel()
@@ -230,9 +229,9 @@ void MarkovEditorPanel::createColumns(int n)
 {
     this->listBox->getHeader().removeAllColumns();
 
-    for (int i = 0; i < n; i++)
+    for (int i = 1; i <= n; i++)
     {
-        this->listBox->getHeader().addColumn("", n, 150);
+        this->listBox->getHeader().addColumn("", i, 70);
     }
 
     this->listBox->updateContent();
