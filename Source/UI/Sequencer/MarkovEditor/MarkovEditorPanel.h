@@ -40,6 +40,10 @@ public:
     void paintRowBackground(Graphics &, int rowNumber, int width, int height, bool rowIsSelected) override;
     int getNumRows() override { return 1; }
 
+    void cellClicked (int rowNumber, int columnId, const MouseEvent &) override;
+    void cellDoubleClicked (int rowNumber, int columnId, const MouseEvent &) override;
+    String getCellTooltip (int rowNumber, int columnId) override;
+
     void generateModel();
     void loadModelFromFile();
     void saveModelToFile();
@@ -49,6 +53,9 @@ private:
 
     void createColumns(int n);
     static String midiNoteToString(int midiKey);
+
+    // todo with new id
+    void modifyTrackSoundObject(bool insert, int objectIndex, float beat, bool checkpoint);
 
     ProjectNode &project;
     PianoRoll* roll;
@@ -63,6 +70,11 @@ private:
     // -1 for initial state
     int currentState = -1;
     std::unordered_map<int, std::vector<std::pair<float, int>>> rowVector;
+
+    // -1 for no selection
+    int selectedCell = -1;
+
+    float currentInsertBeat = 0;
 
     // Model Controls
     UniquePointer<Label> modelLabel;
