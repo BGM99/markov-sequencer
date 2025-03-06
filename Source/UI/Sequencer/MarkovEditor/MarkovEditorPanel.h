@@ -42,7 +42,7 @@ public:
 
     void cellClicked (int rowNumber, int columnId, const MouseEvent &) override;
     void cellDoubleClicked (int rowNumber, int columnId, const MouseEvent &) override;
-    String getCellTooltip (int rowNumber, int columnId) override;
+    //String getCellTooltip (int rowNumber, int columnId) override;
 
     void generateModel();
     void loadModelFromFile();

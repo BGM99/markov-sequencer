@@ -174,6 +174,26 @@ void MarkovEditorPanel::paintRowBackground(Graphics &g, int rowNumber, int width
     g.fillAll(Colours::darkgrey);
 }
 
+void MarkovEditorPanel::cellClicked(int rowNumber, int columnId, const MouseEvent &mouse_event)
+{
+    if (this->selectedCell != -1)
+    {
+        this->modifyTrackSoundObject(false, this->selectedCell, this->currentInsertBeat, false);
+    }
+
+    this->selectedCell = columnId;
+
+    this->modifyTrackSoundObject(true, columnId, this->currentInsertBeat, false);
+}
+
+void MarkovEditorPanel::cellDoubleClicked(int rowNumber, int columnId, const MouseEvent &mouse_event)
+{
+    this->selectedCell = -1;
+    this->currentState = columnId - 1;
+
+    this->modifyTrackSoundObject(true, columnId, this->currentInsertBeat, true);
+}
+
 void MarkovEditorPanel::generateModel()
 {
     const auto * sequence = dynamic_cast<PianoSequence *>(this->roll->getActiveTrack().get()->getSequence());
@@ -247,4 +267,46 @@ String MarkovEditorPanel::midiNoteToString(int midiKey) {
     int octave = (midiKey / 12) - 1;
 
     return noteNames[noteIndex] + std::to_string(octave);
+}
+
+void MarkovEditorPanel::modifyTrackSoundObject(bool insert, int objectIndex, float beat, bool checkpoint)
+{
+    auto *sequence = dynamic_cast<PianoSequence *>(this->roll->getActiveTrack().get()->getSequence());
+    if (sequence == nullptr)
+    {
+        return;
+    }
+
+    Sound sound = this->currentModel.States[objectIndex];
+    Array<Note> notes;
+
+    if (std::holds_alternative<Note>(sound))
+    {
+        Note note = std::get<Note>(sound);
+        notes.add(note.withBeat(beat));
+    }
+    else if (std::holds_alternative<std::vector<Note>>(sound))
+    {
+        auto noteList = std::get<std::vector<Note>>(sound);
+        float startBeat = noteList.front().getBeat();
+        for (const auto &note : noteList)
+        {
+            notes.add(note.withBeat(note.getBeat() - startBeat + beat));
+        }
+    }
+    else if (std::holds_alternative<float>(sound))
+    {
+        this->currentInsertBeat += insert ? std::get<float>(sound) : -std::get<float>(sound);
+    }
+
+    if (checkpoint) sequence->checkpoint();
+
+    if (insert)
+    {
+        sequence->insertGroup(notes, checkpoint);
+    }
+    else
+    {
+        sequence->removeGroup(notes, checkpoint);
+    }
 }
