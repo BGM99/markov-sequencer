@@ -55,7 +55,8 @@ private:
     static String midiNoteToString(int midiKey);
 
     // todo with new id
-    void modifyTrackSoundObject(bool insert, int objectIndex, float beat, bool checkpoint);
+    // Adds or removes Notes from the Track to preview a sound object (returns the length)
+    float modifyTrackSoundObject(bool insert, int objectIndex, float beat, bool checkpoint);
 
     ProjectNode &project;
     PianoRoll* roll;

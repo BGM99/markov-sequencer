@@ -114,6 +114,8 @@ void MarkovEditorPanel::resized()
 }
 void MarkovEditorPanel::paintCell(Graphics & g, int rowNumber, int columnId, int width, int height, bool rowIsSelected)
 {
+    if (this->rowVector[this->currentState].size() < columnId) return;
+
     auto entry = this->rowVector[this->currentState][columnId - 1];
     float prob = entry.first;
     Sound sound = this->currentModel.States[entry.second];
@@ -141,8 +143,9 @@ void MarkovEditorPanel::paintCell(Graphics & g, int rowNumber, int columnId, int
         noteNames.append(std::to_string(std::get<float>(sound)), 4);
     }
 
-    probText.append(std::to_string(prob), 4);
-    probText.append("%", 4);
+    std::ostringstream stream;
+    stream << std::fixed << std::setprecision(1) << (prob * 100) << "%";
+    probText.append(stream.str(), 10);
 
     g.setColour (juce::Colours::white);
     g.setFont (Globals::UI::Fonts::M);
@@ -153,9 +156,7 @@ void MarkovEditorPanel::paintCell(Graphics & g, int rowNumber, int columnId, int
     g.drawText (noteNames, 0,0, width, height,
                 juce::Justification::centredBottom, true);
 
-    auto colIsSelected = false;
-
-    g.setColour (colIsSelected ? Colours::darkgrey : Colours::white);
+    g.setColour (this->selectedCell == columnId ? Colours::plum : Colours::white);
     g.drawRect (0, 0, width, height, 1);   // draw an outline around the component
 }
 
@@ -178,12 +179,14 @@ void MarkovEditorPanel::cellClicked(int rowNumber, int columnId, const MouseEven
 {
     if (this->selectedCell != -1)
     {
-        this->modifyTrackSoundObject(false, this->selectedCell, this->currentInsertBeat, false);
+        this->modifyTrackSoundObject(false, this->selectedCell - 1, this->currentInsertBeat, false);
     }
 
     this->selectedCell = columnId;
 
-    this->modifyTrackSoundObject(true, columnId, this->currentInsertBeat, false);
+    this->modifyTrackSoundObject(true, columnId - 1, this->currentInsertBeat, false);
+
+    this->listBox->repaint();
 }
 
 void MarkovEditorPanel::cellDoubleClicked(int rowNumber, int columnId, const MouseEvent &mouse_event)
@@ -191,7 +194,13 @@ void MarkovEditorPanel::cellDoubleClicked(int rowNumber, int columnId, const Mou
     this->selectedCell = -1;
     this->currentState = columnId - 1;
 
-    this->modifyTrackSoundObject(true, columnId, this->currentInsertBeat, true);
+    float length = 0;
+
+    length = this->modifyTrackSoundObject(true, this->currentState, this->currentInsertBeat, true);
+
+    this->currentInsertBeat += length;
+
+    this->listBox->repaint();
 }
 
 void MarkovEditorPanel::generateModel()
@@ -269,21 +278,23 @@ String MarkovEditorPanel::midiNoteToString(int midiKey) {
     return noteNames[noteIndex] + std::to_string(octave);
 }
 
-void MarkovEditorPanel::modifyTrackSoundObject(bool insert, int objectIndex, float beat, bool checkpoint)
+float MarkovEditorPanel::modifyTrackSoundObject(bool insert, int objectIndex, float beat, bool checkpoint)
 {
     auto *sequence = dynamic_cast<PianoSequence *>(this->roll->getActiveTrack().get()->getSequence());
     if (sequence == nullptr)
     {
-        return;
+        return 0;
     }
 
     Sound sound = this->currentModel.States[objectIndex];
     Array<Note> notes;
+    float length = 0;
 
     if (std::holds_alternative<Note>(sound))
     {
-        Note note = std::get<Note>(sound);
-        notes.add(note.withBeat(beat));
+        Note note = std::get<Note>(sound).withBeat(beat);
+        notes.add(checkpoint ? note.withNewId(sequence) : note);
+        length = note.getLength();
     }
     else if (std::holds_alternative<std::vector<Note>>(sound))
     {
@@ -292,11 +303,13 @@ void MarkovEditorPanel::modifyTrackSoundObject(bool insert, int objectIndex, flo
         for (const auto &note : noteList)
         {
             notes.add(note.withBeat(note.getBeat() - startBeat + beat));
+            length += note.getLength();
         }
     }
     else if (std::holds_alternative<float>(sound))
     {
-        this->currentInsertBeat += insert ? std::get<float>(sound) : -std::get<float>(sound);
+        //this->currentInsertBeat += insert ? std::get<float>(sound) : -std::get<float>(sound);
+        length = std::get<float>(sound);
     }
 
     if (checkpoint) sequence->checkpoint();
@@ -309,4 +322,5 @@ void MarkovEditorPanel::modifyTrackSoundObject(bool insert, int objectIndex, flo
     {
         sequence->removeGroup(notes, checkpoint);
     }
+    return length;
 }
