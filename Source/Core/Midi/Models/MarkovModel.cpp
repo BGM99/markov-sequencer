@@ -14,7 +14,7 @@ MarkovModel::~MarkovModel()
 
 void MarkovModel::generateFromSequence(Array<Note> sortedSelection)
 {
-    if (true)
+    if (false)
     {
         generateSingleNoteChain(sortedSelection);
     } else

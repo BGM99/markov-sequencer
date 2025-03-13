@@ -13,7 +13,6 @@
 #include "ProjectNode.h"
 #include <HelioTheme.h>
 #include "MenuItemComponent.h"
-
 #include <SerializationKeys.h>
 
 //==============================================================================
@@ -144,7 +143,7 @@ void MarkovEditorPanel::paintCell(Graphics & g, int rowNumber, int columnId, int
     }
 
     std::ostringstream stream;
-    stream << std::fixed << std::setprecision(1) << (prob * 100) << "%";
+    stream << std::fixed << std::setprecision(1) << (prob * 100);
     probText.append(stream.str(), 10);
 
     g.setColour (juce::Colours::white);
@@ -302,7 +301,8 @@ float MarkovEditorPanel::modifyTrackSoundObject(bool insert, int objectIndex, fl
         float startBeat = noteList.front().getBeat();
         for (const auto &note : noteList)
         {
-            notes.add(note.withBeat(note.getBeat() - startBeat + beat));
+            auto n = note.withBeat(note.getBeat() - startBeat + beat);
+            notes.add(checkpoint ? n.withNewId(sequence) : n);
             length += note.getLength();
         }
     }
