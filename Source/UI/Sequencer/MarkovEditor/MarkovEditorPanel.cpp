@@ -123,20 +123,29 @@ void MarkovEditorPanel::paintCell(Graphics &g, int rowNumber, int columnId, int 
 
     String probText = "";
     String noteNames = "";
+    std::ostringstream stream;
+
+    bool moreThanTwoNotes = false;
 
     if (std::holds_alternative<Note>(sound))
     {
         Note note = std::get<Note>(sound);
         noteNames.append(midiNoteToString(note.getKey()), 5);
-        noteNames.append(std::to_string(note.getLength()), 5);
+        noteNames.append(", ", 5);
+        stream << std::fixed << std::setprecision(1) << note.getLength() << std::endl;
+        noteNames.append(stream.str(), 5);
+        stream.str("");
     }
     else if (std::holds_alternative<std::vector<Note>>(sound))
     {
+        moreThanTwoNotes = std::get<std::vector<Note>>(sound).size() > 2;
         for (const auto &note : std::get<std::vector<Note>>(sound))
         {
             noteNames.append(midiNoteToString(note.getKey()), 5);
             noteNames.append(", ", 5);
-            noteNames.append(std::to_string(note.getLength()), 5);
+            stream << std::fixed << std::setprecision(1) << note.getLength() << std::endl;
+            noteNames.append(stream.str(), 5);
+            stream.str("");
         }
     }
     else if (std::holds_alternative<float>(sound))
@@ -145,14 +154,17 @@ void MarkovEditorPanel::paintCell(Graphics &g, int rowNumber, int columnId, int 
         noteNames.append(std::to_string(std::get<float>(sound)), 4);
     }
 
-    std::ostringstream stream;
     stream << std::fixed << std::setprecision(1) << (prob * 100) << "%";
     probText.append(stream.str(), 10);
 
     g.setColour(juce::Colours::white);
-    g.setFont(Globals::UI::Fonts::S);
-    g.drawText(noteNames, 0, 0, width, height,
-        juce::Justification::centred, true);
+    moreThanTwoNotes ? g.setFont(Globals::UI::Fonts::XS) : g.setFont(Globals::UI::Fonts::S);
+
+    g.drawFittedText(noteNames, 0, 0, width, height,
+        juce::Justification::centred,
+        3,   // max rows
+        1.0f // scale factor
+    );
 
     g.setFont(Globals::UI::Fonts::XS);
     g.drawText(probText, 0, 0, width, height,
