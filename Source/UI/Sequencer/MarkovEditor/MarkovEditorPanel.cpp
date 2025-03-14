@@ -321,16 +321,14 @@ float MarkovEditorPanel::modifyTrackSoundObject(bool insert, int objectIndex, fl
     else if (std::holds_alternative<std::vector<Note>>(sound))
     {
         auto noteList = std::get<std::vector<Note>>(sound);
-        float startBeat = noteList.front().getBeat();
 
-        auto max_it = std::max_element(noteList.begin(), noteList.end(),
+        auto minmax_it = std::minmax_element(noteList.begin(), noteList.end(),
             [](const Note &a, const Note &b) {
-                return a.getLength() < b.getLength();
+                return a.getBeat() < b.getBeat();
             });
-        if (max_it != noteList.end())
-        {
-            length = (max_it->getBeat() + max_it->getLength()) - startBeat;
-        }
+
+        float startBeat = minmax_it.second->getBeat();
+        length = (minmax_it.first->getBeat() + minmax_it.first->getLength()) - startBeat;
 
         for (const auto &note : noteList)
         {
