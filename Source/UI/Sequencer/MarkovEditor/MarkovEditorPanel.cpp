@@ -16,7 +16,8 @@
 #include <SerializationKeys.h>
 
 //==============================================================================
-MarkovEditorPanel::MarkovEditorPanel(ProjectNode &project, PianoRoll* roll) : project(project), roll(roll)
+MarkovEditorPanel::MarkovEditorPanel(ProjectNode &project, PianoRoll *roll) :
+    project(project), roll(roll)
 {
     this->setPaintingIsUnclipped(true);
 
@@ -36,24 +37,24 @@ MarkovEditorPanel::MarkovEditorPanel(ProjectNode &project, PianoRoll* roll) : pr
 
     this->generateButton = make<TextButton>();
     this->generateButton->setButtonText("Generate Model");
-    this->generateButton->setColour (juce::TextButton::buttonColourId, juce::Colours::grey);
-    this->generateButton->setColour (juce::Label::textColourId, juce::Colours::white);
+    this->generateButton->setColour(juce::TextButton::buttonColourId, juce::Colours::grey);
+    this->generateButton->setColour(juce::Label::textColourId, juce::Colours::white);
     this->generateButton->setBoundsInset(BorderSize(5));
     this->generateButton->onClick = [this] { generateModel(); };
     this->addAndMakeVisible(generateButton.get());
 
     this->loadModelButton = make<TextButton>();
     this->loadModelButton->setButtonText("Load Model");
-    this->loadModelButton->setColour (juce::TextButton::buttonColourId, juce::Colours::grey);
-    this->loadModelButton->setColour (juce::Label::textColourId, juce::Colours::white);
+    this->loadModelButton->setColour(juce::TextButton::buttonColourId, juce::Colours::grey);
+    this->loadModelButton->setColour(juce::Label::textColourId, juce::Colours::white);
     this->loadModelButton->setBoundsInset(BorderSize(5));
     this->loadModelButton->onClick = [this] { loadModelFromFile(); };
     this->addAndMakeVisible(loadModelButton.get());
 
     this->saveModelButton = make<TextButton>();
     this->saveModelButton->setButtonText("Save Model");
-    this->saveModelButton->setColour (juce::TextButton::buttonColourId, juce::Colours::grey);
-    this->saveModelButton->setColour (juce::Label::textColourId, juce::Colours::white);
+    this->saveModelButton->setColour(juce::TextButton::buttonColourId, juce::Colours::grey);
+    this->saveModelButton->setColour(juce::Label::textColourId, juce::Colours::white);
     this->saveModelButton->setBoundsInset(BorderSize(5));
     this->saveModelButton->onClick = [this] { saveModelToFile(); };
     this->addAndMakeVisible(saveModelButton.get());
@@ -63,14 +64,14 @@ MarkovEditorPanel::~MarkovEditorPanel()
 {
 }
 
-void MarkovEditorPanel::paint (juce::Graphics& g)
+void MarkovEditorPanel::paint(juce::Graphics &g)
 {
     Point<int> abc = this->getPosition();
     Rectangle<int> bounds = getLocalBounds();
     int a = getWidth();
 
     const auto &theme = HelioTheme::getCurrentTheme();
-    g.setFillType({ theme.getSidebarBackground(), {} });
+    g.setFillType({theme.getSidebarBackground(), {}});
     g.fillRect(this->getLocalBounds());
 
     g.setColour(this->borderLineDark);
@@ -79,15 +80,15 @@ void MarkovEditorPanel::paint (juce::Graphics& g)
     g.setColour(this->borderLineLight);
     g.fillRect(0, 1, this->getWidth(), 1);
 
-    g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));   // clear the background
+    g.fillAll(getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId)); // clear the background
 
-    g.setColour (juce::Colours::grey);
-    g.drawRect (getLocalBounds(), 1);   // draw an outline around the component
+    g.setColour(juce::Colours::grey);
+    g.drawRect(getLocalBounds(), 1); // draw an outline around the component
 
-    g.setColour (juce::Colours::white);
-    g.setFont (juce::Font (14.0f));
-    g.drawText ("MarkovEditorComponent", getLocalBounds(),
-                juce::Justification::centred, true);   // draw some placeholder text
+    g.setColour(juce::Colours::white);
+    g.setFont(juce::Font(14.0f));
+    g.drawText("MarkovEditorComponent", getLocalBounds(),
+        juce::Justification::centred, true); // draw some placeholder text
 }
 
 void MarkovEditorPanel::resized()
@@ -107,13 +108,14 @@ void MarkovEditorPanel::resized()
     loadModelButton.get()->setBounds(modelControlBounds.removeFromTop(20));
     saveModelButton.get()->setBounds(modelControlBounds.removeFromTop(20));
 
-    Rectangle<int> editorControlBounds = modelControlBounds.removeFromRight(100);
+    Rectangle<int> editorControlBounds = localBounds.removeFromRight(100);
 
     this->listBox->setBounds(localBounds);
 }
-void MarkovEditorPanel::paintCell(Graphics & g, int rowNumber, int columnId, int width, int height, bool rowIsSelected)
+void MarkovEditorPanel::paintCell(Graphics &g, int rowNumber, int columnId, int width, int height, bool rowIsSelected)
 {
-    if (this->rowVector[this->currentState].size() < columnId) return;
+    if (this->rowVector[this->currentState].size() < columnId)
+        return;
 
     auto entry = this->rowVector[this->currentState][columnId - 1];
     float prob = entry.first;
@@ -127,8 +129,8 @@ void MarkovEditorPanel::paintCell(Graphics & g, int rowNumber, int columnId, int
         Note note = std::get<Note>(sound);
         noteNames.append(midiNoteToString(note.getKey()), 5);
         noteNames.append(std::to_string(note.getLength()), 5);
-        
-    } else if (std::holds_alternative<std::vector<Note>>(sound))
+    }
+    else if (std::holds_alternative<std::vector<Note>>(sound))
     {
         for (const auto &note : std::get<std::vector<Note>>(sound))
         {
@@ -136,27 +138,28 @@ void MarkovEditorPanel::paintCell(Graphics & g, int rowNumber, int columnId, int
             noteNames.append(", ", 5);
             noteNames.append(std::to_string(note.getLength()), 5);
         }
-    } else if (std::holds_alternative<float>(sound))
+    }
+    else if (std::holds_alternative<float>(sound))
     {
         noteNames.append("Rest, ", 10);
         noteNames.append(std::to_string(std::get<float>(sound)), 4);
     }
 
     std::ostringstream stream;
-    stream << std::fixed << std::setprecision(1) << (prob * 100);
+    stream << std::fixed << std::setprecision(1) << (prob * 100) << "%";
     probText.append(stream.str(), 10);
 
-    g.setColour (juce::Colours::white);
-    g.setFont (Globals::UI::Fonts::M);
-    g.drawText (probText, 0,0, width, height,
-                juce::Justification::centred, true);
+    g.setColour(juce::Colours::white);
+    g.setFont(Globals::UI::Fonts::S);
+    g.drawText(noteNames, 0, 0, width, height,
+        juce::Justification::centred, true);
 
-    g.setFont (Globals::UI::Fonts::XS);
-    g.drawText (noteNames, 0,0, width, height,
-                juce::Justification::centredBottom, true);
+    g.setFont(Globals::UI::Fonts::XS);
+    g.drawText(probText, 0, 0, width, height,
+        juce::Justification::centredBottom, true);
 
-    g.setColour (this->selectedCell == columnId ? Colours::plum : Colours::white);
-    g.drawRect (0, 0, width, height, 1);   // draw an outline around the component
+    g.setColour(this->selectedCell == columnId ? Colours::plum : Colours::white);
+    g.drawRect(0, 0, width, height, 1); // draw an outline around the component
 }
 
 void MarkovEditorPanel::paintRowBackground(Graphics &g, int rowNumber, int width, int height, bool rowIsSelected)
@@ -176,41 +179,54 @@ void MarkovEditorPanel::paintRowBackground(Graphics &g, int rowNumber, int width
 
 void MarkovEditorPanel::cellClicked(int rowNumber, int columnId, const MouseEvent &mouse_event)
 {
+    if (this->rowVector[this->currentState].size() < columnId)
+        return;
+
+    int index = this->rowVector[this->currentState][columnId - 1].second;
+
     if (this->selectedCell != -1)
     {
-        this->modifyTrackSoundObject(false, this->selectedCell - 1, this->currentInsertBeat, false);
+        int removeIndex = this->rowVector[this->currentState][this->selectedCell - 1].second;
+        this->modifyTrackSoundObject(false, removeIndex, this->currentInsertBeat, false);
     }
 
     this->selectedCell = columnId;
 
-    this->modifyTrackSoundObject(true, columnId - 1, this->currentInsertBeat, false);
+    this->modifyTrackSoundObject(true, index, this->currentInsertBeat, false);
 
     this->listBox->repaint();
 }
 
 void MarkovEditorPanel::cellDoubleClicked(int rowNumber, int columnId, const MouseEvent &mouse_event)
 {
-    this->selectedCell = -1;
-    this->currentState = columnId - 1;
+    if (this->rowVector[this->currentState].size() < columnId)
+        return;
+
+    int index = this->rowVector[this->currentState][columnId - 1].second;
 
     float length = 0;
 
-    length = this->modifyTrackSoundObject(true, this->currentState, this->currentInsertBeat, true);
+    length = this->modifyTrackSoundObject(true, index, this->currentInsertBeat, true);
 
     this->currentInsertBeat += length;
+
+    this->selectedCell = -1;
+    this->currentState = index; // switch state
 
     this->listBox->repaint();
 }
 
 void MarkovEditorPanel::generateModel()
 {
-    const auto * sequence = dynamic_cast<PianoSequence *>(this->roll->getActiveTrack().get()->getSequence());
-    if (sequence == nullptr) {
+    const auto *sequence = dynamic_cast<PianoSequence *>(this->roll->getActiveTrack().get()->getSequence());
+    if (sequence == nullptr)
+    {
         return;
     }
 
     Array<Note> sortedSelection;
-    for (int i = 0; i < sequence->size(); ++i) {
+    for (int i = 0; i < sequence->size(); ++i)
+    {
         const auto &note = sequence->getNoteUnchecked(i);
         sortedSelection.addSorted(note, note);
     }
@@ -219,25 +235,30 @@ void MarkovEditorPanel::generateModel()
     mm->generateFromSequence(sortedSelection);
     this->currentModel = *mm;
 
-    for (int r = 0; r < mm->Size(); ++r) {
-        for (int c = 0; c < mm->Size(); ++c) {
-            if ((*mm->StateMatrix)(r, c) != 0.0f) {
+    for (int r = 0; r < mm->Size(); ++r)
+    {
+        for (int c = 0; c < mm->Size(); ++c)
+        {
+            if ((*mm->StateMatrix)(r, c) != 0.0f)
+            {
                 this->rowVector[r].emplace_back((*mm->StateMatrix)(r, c), c);
             }
         }
 
-        std::sort(this->rowVector[r].begin(), this->rowVector[r].end(), [](const auto& a, const auto& b) {
+        std::sort(this->rowVector[r].begin(), this->rowVector[r].end(), [](const auto &a, const auto &b) {
             return a.first > b.first;
         });
     }
 
-    for (int c = 0; c < mm->Size(); ++c) {
-        if ((*mm->InitialStateVector)(0, c) != 0.0f) {
+    for (int c = 0; c < mm->Size(); ++c)
+    {
+        if ((*mm->InitialStateVector)(0, c) != 0.0f)
+        {
             this->rowVector[-1].emplace_back((*mm->InitialStateVector)(0, c), c);
         }
     }
 
-    std::sort(this->rowVector[-1].begin(), this->rowVector[-1].end(), [](const auto& a, const auto& b) {
+    std::sort(this->rowVector[-1].begin(), this->rowVector[-1].end(), [](const auto &a, const auto &b) {
         return a.first > b.first;
     });
 
@@ -265,8 +286,10 @@ void MarkovEditorPanel::createColumns(int n)
     this->listBox->updateContent();
 }
 
-String MarkovEditorPanel::midiNoteToString(int midiKey) {
-    if (midiKey < 0 || midiKey > 127) {
+String MarkovEditorPanel::midiNoteToString(int midiKey)
+{
+    if (midiKey < 0 || midiKey > 127)
+    {
         return "Invalid MIDI key";
     }
 
@@ -299,20 +322,30 @@ float MarkovEditorPanel::modifyTrackSoundObject(bool insert, int objectIndex, fl
     {
         auto noteList = std::get<std::vector<Note>>(sound);
         float startBeat = noteList.front().getBeat();
+
+        auto max_it = std::max_element(noteList.begin(), noteList.end(),
+            [](const Note &a, const Note &b) {
+                return a.getLength() < b.getLength();
+            });
+        if (max_it != noteList.end())
+        {
+            length = (max_it->getBeat() + max_it->getLength()) - startBeat;
+        }
+
         for (const auto &note : noteList)
         {
             auto n = note.withBeat(note.getBeat() - startBeat + beat);
             notes.add(checkpoint ? n.withNewId(sequence) : n);
-            length += note.getLength();
         }
     }
     else if (std::holds_alternative<float>(sound))
     {
-        //this->currentInsertBeat += insert ? std::get<float>(sound) : -std::get<float>(sound);
+        // this->currentInsertBeat += insert ? std::get<float>(sound) : -std::get<float>(sound);
         length = std::get<float>(sound);
     }
 
-    if (checkpoint) sequence->checkpoint();
+    if (checkpoint)
+        sequence->checkpoint();
 
     if (insert)
     {
