@@ -673,7 +673,7 @@ void SequencerLayout::resized()
 {
     auto localBounds = this->getLocalBounds();
 
-    this->markovEditorPanel->setBounds(localBounds.removeFromBottom(Globals::UI::editorPanelHeight));
+    this->markovEditorPanel->setBounds(localBounds.removeFromBottom(110));
 
     const auto leftSidebarWidth = this->rollNavigationSidebar->getWidth();
     const auto rightSidebarWidth = this->rollToolsSidebar->getWidth();

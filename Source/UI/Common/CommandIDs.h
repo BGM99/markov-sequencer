@@ -239,7 +239,9 @@ namespace CommandIDs
         MakeLegatoOverlapping           = 0x4604, // connect notes together, but with a slight overlap for use in certain VSTs
         Glue                            = 0x4605, // glue overlapping notes
 
-        StartMarkovMode                 = 0x4700,
+        StartMarkovMode                 = 0x4700, // markov panel
+        MovePreviousState               = 0x4701,
+        MoveNextState                   = 0x4702,
 
         YourNextCommandId               = 0x4800
     };

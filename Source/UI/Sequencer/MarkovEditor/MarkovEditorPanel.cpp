@@ -8,12 +8,13 @@
   ==============================================================================
 */
 
-#include <JuceHeader.h>
 #include "MarkovEditorPanel.h"
 #include "ProjectNode.h"
-#include <HelioTheme.h>
 #include "MenuItemComponent.h"
-#include <SerializationKeys.h>
+#include <JuceHeader.h>
+#include <PianoRoll.h>
+#include <HelioTheme.h>
+#include <random>
 
 //==============================================================================
 MarkovEditorPanel::MarkovEditorPanel(ProjectNode &project, PianoRoll *roll) :
@@ -30,6 +31,7 @@ MarkovEditorPanel::MarkovEditorPanel(ProjectNode &project, PianoRoll *roll) :
     this->listBox->getViewport()->setScrollOnDragMode(Viewport::ScrollOnDragMode::never);
     this->addAndMakeVisible(this->listBox.get());
 
+    // Model Controls
     this->modelLabel = make<Label>(String("No Model loaded"));
     this->modelLabel->setFont(Globals::UI::Fonts::L);
     this->modelLabel->setBoundsInset(BorderSize(5));
@@ -58,6 +60,15 @@ MarkovEditorPanel::MarkovEditorPanel(ProjectNode &project, PianoRoll *roll) :
     this->saveModelButton->setBoundsInset(BorderSize(5));
     this->saveModelButton->onClick = [this] { saveModelToFile(); };
     this->addAndMakeVisible(saveModelButton.get());
+
+    // Editor Controls
+    this->navigatePrevious = make<IconButton>(Icons::findByName(Icons::back, 32), CommandIDs::MovePreviousState);
+    this->navigatePrevious->setEnabled(false);
+    this->addAndMakeVisible(this->navigatePrevious.get());
+
+    this->navigateNext = make<IconButton>(Icons::findByName(Icons::forward, 32), CommandIDs::MoveNextState);
+    this->navigateNext->setEnabled(true);
+    this->addAndMakeVisible(this->navigateNext.get());
 }
 
 MarkovEditorPanel::~MarkovEditorPanel()
@@ -66,21 +77,16 @@ MarkovEditorPanel::~MarkovEditorPanel()
 
 void MarkovEditorPanel::paint(juce::Graphics &g)
 {
-    Point<int> abc = this->getPosition();
-    Rectangle<int> bounds = getLocalBounds();
-    int a = getWidth();
-
     const auto &theme = HelioTheme::getCurrentTheme();
-    g.setFillType({theme.getSidebarBackground(), {}});
-    g.fillRect(this->getLocalBounds());
+    // g.setFillType({theme.getSidebarBackground(), {}});
+    //   g.fillRect(this->getLocalBounds());
+    g.fillAll(getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));
 
     g.setColour(this->borderLineDark);
     g.fillRect(0, 0, this->getWidth(), 1);
 
     g.setColour(this->borderLineLight);
     g.fillRect(0, 1, this->getWidth(), 1);
-
-    g.fillAll(getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId)); // clear the background
 
     g.setColour(juce::Colours::grey);
     g.drawRect(getLocalBounds(), 1); // draw an outline around the component
@@ -109,9 +115,30 @@ void MarkovEditorPanel::resized()
     saveModelButton.get()->setBounds(modelControlBounds.removeFromTop(20));
 
     Rectangle<int> editorControlBounds = localBounds.removeFromRight(100);
+    Rectangle<int> navigationPanel = editorControlBounds.removeFromTop(50);
+    navigationPanel.removeFromRight(30);
+    navigateNext.get()->setBounds(navigationPanel.removeFromRight(20));
+    navigatePrevious.get()->setBounds(navigationPanel.removeFromRight(20));
 
     this->listBox->setBounds(localBounds);
 }
+
+void MarkovEditorPanel::handleCommandMessage(int commandId)
+{
+    switch (commandId)
+    {
+        case CommandIDs::MoveNextState:
+            moveNextState();
+            break;
+        case CommandIDs::MovePreviousState:
+            movePreviousState();
+            break;
+        default:
+            return;
+            break;
+    }
+}
+
 void MarkovEditorPanel::paintCell(Graphics &g, int rowNumber, int columnId, int width, int height, bool rowIsSelected)
 {
     if (this->rowVector[this->currentState].size() < columnId)
@@ -176,17 +203,45 @@ void MarkovEditorPanel::paintCell(Graphics &g, int rowNumber, int columnId, int 
 
 void MarkovEditorPanel::paintRowBackground(Graphics &g, int rowNumber, int width, int height, bool rowIsSelected)
 {
-    // const auto &theme = HelioTheme::getCurrentTheme();
-    // g.setFillType({theme.getPageBackgroundB(), {}});
-    // g.fillRect(0, 0, width, height);
+    const auto &theme = HelioTheme::getCurrentTheme();
+    g.setFillType({theme.getPageBackgroundB(), {}});
+    g.fillRect(0, 0, width, height);
 
     g.setColour(this->borderLineDark);
     g.fillRect(0, 0, width, 1);
 
     g.setColour(this->borderLineLight);
     g.fillRect(0, 1, width, 1);
+}
 
-    g.fillAll(Colours::darkgrey);
+void MarkovEditorPanel::removeSelectedNotes()
+{
+    if (this->selectedCell != -1)
+    {
+        int removeIndex = this->rowVector[this->currentState][this->selectedCell - 1].second;
+        this->modifyTrackSoundObject(false, removeIndex, this->currentInsertBeat, false);
+    }
+}
+
+int MarkovEditorPanel::getRandomSoundObject()
+{
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<float> dis(0.0f, 1.0f);
+
+    float random = dis(gen);
+
+    std::vector<float> cumulativeSums;
+    cumulativeSums.reserve(this->rowVector[this->currentState].size());
+
+    float sum = 0.0f;
+    for (const auto &[prob, _] : this->rowVector[this->currentState])
+    {
+        sum += prob;
+        cumulativeSums.push_back(sum);
+    }
+
+    return this->findNearestAbove(cumulativeSums, random);
 }
 
 void MarkovEditorPanel::cellClicked(int rowNumber, int columnId, const MouseEvent &mouse_event)
@@ -196,11 +251,7 @@ void MarkovEditorPanel::cellClicked(int rowNumber, int columnId, const MouseEven
 
     int index = this->rowVector[this->currentState][columnId - 1].second;
 
-    if (this->selectedCell != -1)
-    {
-        int removeIndex = this->rowVector[this->currentState][this->selectedCell - 1].second;
-        this->modifyTrackSoundObject(false, removeIndex, this->currentInsertBeat, false);
-    }
+    removeSelectedNotes();
 
     this->selectedCell = columnId;
 
@@ -215,6 +266,33 @@ void MarkovEditorPanel::cellDoubleClicked(int rowNumber, int columnId, const Mou
         return;
 
     int index = this->rowVector[this->currentState][columnId - 1].second;
+
+    // todo check if selected notes need to be removed
+
+    float length = 0;
+
+    length = this->modifyTrackSoundObject(true, index, this->currentInsertBeat, true);
+
+    this->currentInsertBeat += length;
+
+    this->selectedCell = -1;
+    this->currentState = index; // switch state
+
+    this->listBox->repaint();
+}
+
+void MarkovEditorPanel::movePreviousState()
+{
+    removeSelectedNotes();
+
+    this->listBox->repaint();
+}
+
+void MarkovEditorPanel::moveNextState()
+{
+    removeSelectedNotes();
+
+    int index = getRandomSoundObject();
 
     float length = 0;
 
@@ -310,6 +388,24 @@ String MarkovEditorPanel::midiNoteToString(int midiKey)
     int octave = (midiKey / 12) - 1;
 
     return noteNames[noteIndex] + std::to_string(octave);
+}
+
+int MarkovEditorPanel::findNearestAbove(const std::vector<float> &v, float target)
+{
+    float minDiff = std::numeric_limits<float>::max();
+    int index = -1; // -1 if no value found
+
+    for (size_t i = 0; i < v.size(); ++i)
+    {
+        float diff = v[i] - target;
+        if (diff > 0 && diff < minDiff)
+        {
+            minDiff = diff;
+            index = i;
+        }
+    }
+
+    return index;
 }
 
 float MarkovEditorPanel::modifyTrackSoundObject(bool insert, int objectIndex, float beat, bool checkpoint)
