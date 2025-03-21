@@ -63,7 +63,7 @@ MarkovEditorPanel::MarkovEditorPanel(ProjectNode &project, PianoRoll *roll) :
 
     // Editor Controls
     this->navigatePrevious = make<IconButton>(Icons::findByName(Icons::back, 32), CommandIDs::MovePreviousState);
-    this->navigatePrevious->setEnabled(false);
+    this->navigatePrevious->setEnabled(true);
     this->addAndMakeVisible(this->navigatePrevious.get());
 
     this->navigateNext = make<IconButton>(Icons::findByName(Icons::forward, 32), CommandIDs::MoveNextState);
@@ -241,7 +241,8 @@ int MarkovEditorPanel::getRandomSoundObject()
         cumulativeSums.push_back(sum);
     }
 
-    return this->findNearestAbove(cumulativeSums, random);
+    int index = this->findNearestAbove(cumulativeSums, random);
+    return this->rowVector[this->currentState][index].second;
 }
 
 void MarkovEditorPanel::cellClicked(int rowNumber, int columnId, const MouseEvent &mouse_event)
@@ -284,6 +285,21 @@ void MarkovEditorPanel::cellDoubleClicked(int rowNumber, int columnId, const Mou
 void MarkovEditorPanel::movePreviousState()
 {
     removeSelectedNotes();
+
+    auto notes = this->insertedSounds.top().second;
+
+    auto *sequence = dynamic_cast<PianoSequence *>(this->roll->getActiveTrack().get()->getSequence());
+    if (sequence == nullptr)
+    {
+        return;
+    }
+
+    sequence->removeGroup(notes, true);
+
+    this->currentState = this->insertedSounds.top().first;
+    this->selectedCell = -1;
+
+    this->insertedSounds.pop();
 
     this->listBox->repaint();
 }
@@ -411,7 +427,7 @@ int MarkovEditorPanel::findNearestAbove(const std::vector<float> &v, float targe
 float MarkovEditorPanel::modifyTrackSoundObject(bool insert, int objectIndex, float beat, bool checkpoint)
 {
     auto *sequence = dynamic_cast<PianoSequence *>(this->roll->getActiveTrack().get()->getSequence());
-    if (sequence == nullptr)
+    if (sequence == nullptr || objectIndex == -1)
     {
         return 0;
     }
@@ -430,36 +446,36 @@ float MarkovEditorPanel::modifyTrackSoundObject(bool insert, int objectIndex, fl
     {
         auto noteList = std::get<std::vector<Note>>(sound);
 
-        auto minmax_it = std::minmax_element(noteList.begin(), noteList.end(),
+        auto min_it = std::min_element(noteList.begin(), noteList.end(),
             [](const Note &a, const Note &b) {
                 return a.getBeat() < b.getBeat();
             });
 
-        float startBeat = minmax_it.second->getBeat();
-        length = (minmax_it.first->getBeat() + minmax_it.first->getLength()) - startBeat;
+        float startBeat = min_it->getBeat();
 
         for (const auto &note : noteList)
         {
             auto n = note.withBeat(note.getBeat() - startBeat + beat);
             notes.add(checkpoint ? n.withNewId(sequence) : n);
+            length = std::max(length, note.getBeat() + note.getLength() - startBeat);
         }
     }
     else if (std::holds_alternative<float>(sound))
     {
-        // this->currentInsertBeat += insert ? std::get<float>(sound) : -std::get<float>(sound);
         length = std::get<float>(sound);
     }
 
-    if (checkpoint)
-        sequence->checkpoint();
+    if (checkpoint) sequence->checkpoint();
 
     if (insert)
     {
+        if (checkpoint) this->insertedSounds.push({this->currentState, notes});
         sequence->insertGroup(notes, checkpoint);
     }
     else
     {
         sequence->removeGroup(notes, checkpoint);
+        if (checkpoint) this->insertedSounds.pop();
     }
     return length;
 }

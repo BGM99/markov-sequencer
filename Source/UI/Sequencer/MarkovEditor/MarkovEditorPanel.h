@@ -14,7 +14,7 @@
 #include <JuceHeader.h>
 #include "Midi/Models/MarkovModel.h"
 #include "Note.h"
-
+#include <stack>
 #include <IconButton.h>
 #include <RollBase.h>
 #include <variant>
@@ -80,6 +80,10 @@ private:
     MarkovModel currentModel;
     // -1 for initial state
     int currentState = -1;
+
+    // {state, insertedNotes}
+    std::stack<std::pair<int, Array<Note>>> insertedSounds;
+
     std::unordered_map<int, std::vector<std::pair<float, int>>> rowVector;
 
     // -1 for no selection
