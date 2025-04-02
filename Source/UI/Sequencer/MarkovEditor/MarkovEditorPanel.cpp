@@ -286,7 +286,7 @@ void MarkovEditorPanel::movePreviousState()
 {
     removeSelectedNotes();
 
-    auto notes = this->insertedSounds.top().second;
+    auto notes = std::get<1>(this->insertedSounds.top());
 
     auto *sequence = dynamic_cast<PianoSequence *>(this->roll->getActiveTrack().get()->getSequence());
     if (sequence == nullptr)
@@ -296,7 +296,8 @@ void MarkovEditorPanel::movePreviousState()
 
     sequence->removeGroup(notes, true);
 
-    this->currentState = this->insertedSounds.top().first;
+    this->currentInsertBeat -= std::get<2>(this->insertedSounds.top());
+    this->currentState = std::get<0>(this->insertedSounds.top());
     this->selectedCell = -1;
 
     this->insertedSounds.pop();
@@ -469,7 +470,7 @@ float MarkovEditorPanel::modifyTrackSoundObject(bool insert, int objectIndex, fl
 
     if (insert)
     {
-        if (checkpoint) this->insertedSounds.push({this->currentState, notes});
+        if (checkpoint) this->insertedSounds.push({this->currentState, notes, length});
         sequence->insertGroup(notes, checkpoint);
     }
     else

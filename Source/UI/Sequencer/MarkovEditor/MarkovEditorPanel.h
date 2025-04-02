@@ -81,8 +81,8 @@ private:
     // -1 for initial state
     int currentState = -1;
 
-    // {state, insertedNotes}
-    std::stack<std::pair<int, Array<Note>>> insertedSounds;
+    // {state, insertedNotes, length}
+    std::stack<std::tuple<int, Array<Note>, float>> insertedSounds;
 
     std::unordered_map<int, std::vector<std::pair<float, int>>> rowVector;
 
