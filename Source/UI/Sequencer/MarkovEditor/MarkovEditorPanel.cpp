@@ -252,11 +252,17 @@ void MarkovEditorPanel::cellClicked(int rowNumber, int columnId, const MouseEven
 
     int index = this->rowVector[this->currentState][columnId - 1].second;
 
-    removeSelectedNotes();
-
-    this->selectedCell = columnId;
-
-    this->modifyTrackSoundObject(true, index, this->currentInsertBeat, false);
+    if (this->selectedCell == columnId)
+    {
+        this->selectedCell = -1;
+        this->modifyTrackSoundObject(false, index, this->currentInsertBeat, false);
+    }
+    else
+    {
+        removeSelectedNotes();
+        this->selectedCell = columnId;
+        this->modifyTrackSoundObject(true, index, this->currentInsertBeat, false);
+    }
 
     this->listBox->repaint();
 }
