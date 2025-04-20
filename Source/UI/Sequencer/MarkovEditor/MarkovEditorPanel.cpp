@@ -63,12 +63,13 @@ MarkovEditorPanel::MarkovEditorPanel(ProjectNode &project, PianoRoll *roll) :
 
     // Editor Controls
     this->navigatePrevious = make<IconButton>(Icons::findByName(Icons::back, 32), CommandIDs::MovePreviousState);
-    this->navigatePrevious->setEnabled(true);
     this->addAndMakeVisible(this->navigatePrevious.get());
 
     this->navigateNext = make<IconButton>(Icons::findByName(Icons::forward, 32), CommandIDs::MoveNextState);
     this->navigateNext->setEnabled(true);
     this->addAndMakeVisible(this->navigateNext.get());
+
+    this->updateState();
 }
 
 MarkovEditorPanel::~MarkovEditorPanel()
@@ -131,7 +132,10 @@ void MarkovEditorPanel::handleCommandMessage(int commandId)
             moveNextState();
             break;
         case CommandIDs::MovePreviousState:
-            movePreviousState();
+            if (this->canMovePreviousState())
+            {
+                movePreviousState();
+            }
             break;
         default:
             return;
@@ -283,9 +287,21 @@ void MarkovEditorPanel::cellDoubleClicked(int rowNumber, int columnId, const Mou
     this->currentInsertBeat += length;
 
     this->selectedCell = -1;
-    this->currentState = index; // switch state
-
+    this->currentState = index;
+    this->updateState();
     this->listBox->repaint();
+}
+
+void MarkovEditorPanel::updateState()
+{
+    auto canGoPrevious = canMovePreviousState();
+    this->navigatePrevious->setInterceptsMouseClicks(canGoPrevious, false);
+    this->navigatePrevious->setIconAlphaMultiplier(canGoPrevious ? 1.0f : 0.4f);
+}
+
+bool MarkovEditorPanel::canMovePreviousState() const
+{
+    return !this->insertedSounds.empty();
 }
 
 void MarkovEditorPanel::movePreviousState()
@@ -307,7 +323,7 @@ void MarkovEditorPanel::movePreviousState()
     this->selectedCell = -1;
 
     this->insertedSounds.pop();
-
+    this->updateState();
     this->listBox->repaint();
 }
 
@@ -324,8 +340,8 @@ void MarkovEditorPanel::moveNextState()
     this->currentInsertBeat += length;
 
     this->selectedCell = -1;
-    this->currentState = index; // switch state
-
+    this->currentState = index;
+    this->updateState();
     this->listBox->repaint();
 }
 

@@ -47,6 +47,7 @@ public:
     void cellDoubleClicked(int rowNumber, int columnId, const MouseEvent &) override;
     // String getCellTooltip (int rowNumber, int columnId) override;
 
+    bool canMovePreviousState() const;
     void movePreviousState();
     void moveNextState();
 
@@ -90,6 +91,8 @@ private:
     int selectedCell = -1;
 
     float currentInsertBeat = 0;
+
+    void updateState();
 
     // Model Controls
     UniquePointer<Label> modelLabel;
