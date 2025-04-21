@@ -278,7 +278,7 @@ void MarkovEditorPanel::cellDoubleClicked(int rowNumber, int columnId, const Mou
 
     int index = this->rowVector[this->currentState][columnId - 1].second;
 
-    // todo check if selected notes need to be removed
+    removeSelectedNotes();
 
     float length = 0;
 
