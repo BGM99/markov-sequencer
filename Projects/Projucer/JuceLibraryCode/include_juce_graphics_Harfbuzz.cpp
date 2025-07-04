@@ -6,4 +6,4 @@
 */
 
 #include "AppConfig.h"
-#include <juce_graphics/juce_graphics_Harfbuzz.cpp>
+//#include <juce_graphics/juce_graphics_Harfbuzz.cpp>

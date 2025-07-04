@@ -28,6 +28,7 @@
 #include "AutomationStepEventComponent.h"
 #include "MultiTouchController.h"
 #include "CutPointMark.h"
+#include "PatternOperations.h"
 #include "TempoDialog.h"
 #include "PointReduction.h"
 

@@ -37,7 +37,7 @@ public:
     static void drawNoise(const HelioTheme &theme, Graphics &g, float alphaMultiply = 1.f);
     static void drawStripes(Rectangle<float> bounds, Graphics &g, float alphaMultiply = 1.f);
 
-    inline static void drawText(Graphics &g,
+    static void drawText(Graphics &g,
         const String &text, Rectangle<float> area,
         Justification justificationType, bool useEllipsesIfTooBig = false);
     inline static void drawFittedText(Graphics &g,

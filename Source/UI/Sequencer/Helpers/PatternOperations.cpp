@@ -31,9 +31,13 @@
 #include "AutomationEvent.h"
 #include "Clip.h"
 #include "ClipComponent.h"
+#include "KeySignaturesSequence.h"
 #include "Pattern.h"
 #include "Lasso.h"
+#include "ProjectMetadata.h"
 #include "UndoActionIDs.h"
+
+#include "PatternActions.h"
 
 float PatternOperations::findStartBeat(const Lasso &selection)
 {
