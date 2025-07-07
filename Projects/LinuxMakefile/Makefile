@@ -313,6 +313,7 @@ OBJECTS_APP := \
   $(JUCE_OBJDIR)/PopupButton_5c5e0092.o \
   $(JUCE_OBJDIR)/ProgressTooltip_f470232a.o \
   $(JUCE_OBJDIR)/TooltipContainer_52ddacf4.o \
+  $(JUCE_OBJDIR)/Inserthead_7b32f437.o \
   $(JUCE_OBJDIR)/MarkovEditorPanel_980a2daf.o \
   $(JUCE_OBJDIR)/AutomationEditor_10bbc76.o \
   $(JUCE_OBJDIR)/AutomationCurveHelper_d482275e.o \
@@ -1392,6 +1393,11 @@ $(JUCE_OBJDIR)/ProgressTooltip_f470232a.o: ../../Source/UI/Popups/ProgressToolti
 $(JUCE_OBJDIR)/TooltipContainer_52ddacf4.o: ../../Source/UI/Popups/TooltipContainer.cpp
 	-$(V_AT)mkdir -p $(@D)
 	@echo "Compiling TooltipContainer.cpp"
+	$(V_AT)$(CXX) $(JUCE_CXXFLAGS) $(JUCE_CPPFLAGS_APP) $(JUCE_CFLAGS_APP) -o "$@" -c "$<"
+
+$(JUCE_OBJDIR)/Inserthead_7b32f437.o: ../../Source/UI/Sequencer/MarkovEditor/Inserthead.cpp
+	-$(V_AT)mkdir -p $(@D)
+	@echo "Compiling Inserthead.cpp"
 	$(V_AT)$(CXX) $(JUCE_CXXFLAGS) $(JUCE_CPPFLAGS_APP) $(JUCE_CFLAGS_APP) -o "$@" -c "$<"
 
 $(JUCE_OBJDIR)/MarkovEditorPanel_980a2daf.o: ../../Source/UI/Sequencer/MarkovEditor/MarkovEditorPanel.cpp

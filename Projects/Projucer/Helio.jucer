@@ -1025,6 +1025,8 @@
         </GROUP>
         <GROUP id="{9ABD7DD8-D3C8-EE5D-AD5E-6E6E6D1D3F8B}" name="Sequencer">
           <GROUP id="{37799900-E306-493D-62A3-0A8758DCD868}" name="MarkovEditor">
+            <FILE id="RIlVgz" name="Inserthead.cpp" compile="1" resource="0" file="../../Source/UI/Sequencer/MarkovEditor/Inserthead.cpp"/>
+            <FILE id="guc0Zs" name="Inserthead.h" compile="0" resource="0" file="../../Source/UI/Sequencer/MarkovEditor/Inserthead.h"/>
             <FILE id="Oszhjg" name="MarkovEditorPanel.cpp" compile="1" resource="0"
                   file="../../Source/UI/Sequencer/MarkovEditor/MarkovEditorPanel.cpp"/>
             <FILE id="eu1iEg" name="MarkovEditorPanel.h" compile="0" resource="0"
