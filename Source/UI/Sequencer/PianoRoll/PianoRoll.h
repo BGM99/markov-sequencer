@@ -274,6 +274,9 @@ private:
     UniquePointer<HighlightingScheme> defaultHighlighting;
     int binarySearchForHighlightingScheme(const KeySignatureEvent *const e) const noexcept;
     friend class ThemeSettingsItem; // to be able to call renderRowsPattern
+
+    //Component from markov editor
+    //UniquePointer<Inserthead> inserthead;
     
     bool scalesHighlightingEnabled = true;
 
