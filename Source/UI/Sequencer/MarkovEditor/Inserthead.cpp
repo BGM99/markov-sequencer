@@ -17,13 +17,11 @@
 
 #include "Common.h"
 #include "Inserthead.h"
-#include "Transport.h"
 #include "RollBase.h"
 #include "ColourIDs.h"
-#include "PlayerThread.h"
 
-Inserthead::Inserthead(RollBase &parentRoll,
-    Playhead::Listener *movementListener /*= nullptr*/,
+Inserthead::Inserthead(PianoRoll &parentRoll,
+    Listener *movementListener /*= nullptr*/,
     float alpha /*= 1.f*/) :
     roll(parentRoll),
     listener(movementListener),
@@ -39,16 +37,11 @@ Inserthead::Inserthead(RollBase &parentRoll,
 
     this->setSize(3, 1);
 
-    this->lastCorrectBeat = this->transport.getSeekBeat();
-    this->beatAnchor = this->lastCorrectBeat;
-    this->timeAnchor = Time::getMillisecondCounter();
-
-    this->transport.addTransportListener(this);
+    this->beatAnchor = 0;
 }
 
-Playhead::~Playhead()
+Inserthead::~Inserthead()
 {
-    this->transport.removeTransportListener(this);
 }
 
 
@@ -56,49 +49,39 @@ Playhead::~Playhead()
 // AsyncUpdater to call updatePosition on the main thread
 //===----------------------------------------------------------------------===//
 
-void Playhead::handleAsyncUpdate()
+void Inserthead::handleAsyncUpdate()
 {
-    if (!this->isTimerRunning())
+    if (false)
     {
         this->updatePosition();
     }
 }
 
 //===----------------------------------------------------------------------===//
-// Timer
-//===----------------------------------------------------------------------===//
-
-void Playhead::timerCallback()
-{
-    {
-        const SpinLock::ScopedLockType lock(this->playbackUpdatesLock);
-        this->lastEstimatedBeat = this->calculateEstimatedBeat();
-        jassert(this->lastEstimatedBeat >= this->lastCorrectBeat);
-    }
-
-    this->updatePosition();
-}
-
-//===----------------------------------------------------------------------===//
 // Component
 //===----------------------------------------------------------------------===//
 
-void Playhead::paint(Graphics &g)
+void Inserthead::paint(Graphics &g)
 {
     g.setColour(this->currentColour);
-    g.fillRect(0, 0, 1, this->getHeight());
+    g.fillRect(0, 0, 3, this->getHeight());
 
     g.setColour(this->shadeColour);
-    g.fillRect(1, 0, 1, this->getHeight());
+    g.fillRect(3, 0, 1, this->getHeight());
 }
 
-void Playhead::parentSizeChanged()
+void Inserthead::mouseDrag(const MouseEvent &e)
+{
+
+}
+
+void Inserthead::parentSizeChanged()
 {
     this->setSize(this->getWidth(), this->getParentHeight());
     this->updatePosition();
 }
 
-void Playhead::parentHierarchyChanged()
+void Inserthead::parentHierarchyChanged()
 {
     if (this->getParentComponent() == nullptr)
     {
@@ -110,7 +93,7 @@ void Playhead::parentHierarchyChanged()
     this->updatePosition();
 }
 
-void Playhead::updatePosition(float position)
+void Inserthead::updatePosition(float position)
 {
     const auto oldX = this->getX();
     const int newX = this->roll.getXPositionByBeat(position, float(this->getParentWidth()));
@@ -126,32 +109,18 @@ void Playhead::updatePosition(float position)
     }
 }
 
-void Playhead::updatePosition()
+void Inserthead::updatePosition()
 {
-    if (this->isTimerRunning())
-    {
-        this->updatePosition(this->lastEstimatedBeat);
-    }
-    else
-    {
-        this->updatePosition(this->lastCorrectBeat);
-    }
+    this->updatePosition(this->lastCorrectBeat);
 }
 
-float Playhead::calculateEstimatedBeat() const noexcept
-{
-    const double timeOffsetMs = Time::getMillisecondCounter() - this->timeAnchor;
-    const double positionOffset = timeOffsetMs / this->msPerQuarterNote;
-    return float(this->beatAnchor + positionOffset);
-}
-
-PlayheadSmall::PlayheadSmall(RollBase &parentRoll, Transport &owner) :
-    Playhead(parentRoll, owner, nullptr, 0.75f)
+InsertheadSmall::InsertheadSmall(PianoRoll &parentRoll) :
+    Inserthead(parentRoll, nullptr, 0.75f)
 {
     this->setSize(1, 1);
 }
 
-void PlayheadSmall::paint(Graphics &g)
+void InsertheadSmall::paint(Graphics &g)
 {
     g.setColour(this->currentColour);
     g.fillRect(0, 1, 1, this->getHeight() - 1);

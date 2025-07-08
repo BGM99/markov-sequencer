@@ -25,8 +25,10 @@ class KnifeToolHelper;
 class MergingNotesConnector;
 class NoteNameGuidesBar;
 class NotesDraggingGuide;
+class  Inserthead;
 
 #include "Note.h"
+#include "MarkovEditor/Inserthead.h"
 #include "Clip.h"
 #include "RollBase.h"
 #include "HelioTheme.h"
@@ -276,7 +278,7 @@ private:
     friend class ThemeSettingsItem; // to be able to call renderRowsPattern
 
     //Component from markov editor
-    //UniquePointer<Inserthead> inserthead;
+    UniquePointer<Inserthead> inserthead;
     
     bool scalesHighlightingEnabled = true;
 

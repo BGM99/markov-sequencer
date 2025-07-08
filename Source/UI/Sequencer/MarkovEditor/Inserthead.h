@@ -16,13 +16,14 @@
 */
 
 #pragma once
+#include "PianoRoll.h"
 
 namespace juce
 {
 class Graphics;
 }
 class Transport;
-class RollBase;
+class PianoRoll;
 
 
 
@@ -39,7 +40,7 @@ public:
         virtual void onMovePlayhead(int oldX, int newX) = 0;
     };
 
-    Inserthead(RollBase &parentRoll,
+    Inserthead(PianoRoll &parentRoll,
         Inserthead::Listener *movementListener = nullptr,
         float alpha = 1.f);
 
@@ -47,6 +48,8 @@ public:
 
     void updatePosition();
     void updatePosition(float position);
+
+    void mouseDrag(const MouseEvent &e) override;
 
     //===------------------------------------------------------------------===//
     // Component
@@ -58,25 +61,19 @@ public:
 
 protected:
 
-    RollBase &roll;
+    PianoRoll &roll;
 
     Listener *listener = nullptr;
 
     void handleAsyncUpdate() override;
 
-    // warning: spinlock is not reentrant, use carefully;
-    // for now it synchronizes updates in TransportListener callbacks
-    // coming from the background thread with the timer callback
-    // on the main thread, so that position changes are smooth
-    //SpinLock playbackUpdatesLock;
+    ComponentDragger dragger;
 
-    // it's meant to lock these 4 fields:
+    bool draggingState = false;
+
     float beatAnchor = 0.f;
     double timeAnchor = 0.0;
     float lastCorrectBeat = 0.f;
-
-    float lastEstimatedBeat = 0.f;
-    float calculateEstimatedBeat() const noexcept;
 
     Colour currentColour;
 
@@ -87,10 +84,10 @@ protected:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Inserthead);
 };
 
-class PlayheadSmall final : public Playhead
+class InsertheadSmall final : public Inserthead
 {
 public:
 
-    PlayheadSmall(RollBase &parentRoll, Transport &owner);
+    InsertheadSmall(PianoRoll &parentRoll);
     void paint(juce::Graphics &g) override;
 };

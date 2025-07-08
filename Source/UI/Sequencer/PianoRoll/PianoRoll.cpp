@@ -93,8 +93,9 @@ PianoRoll::PianoRoll(ProjectNode &project, Viewport &viewport, WeakReference<Aud
     this->addChildComponent(this->noteNameGuides.get());
     this->noteNameGuides->setVisible(uiFlags->areNoteNameGuidesEnabled());
 
-    //this->inserthead = make<Inserthead>(*this, this);
-    //this->addChildComponent(this->inserthead.get());
+    this->inserthead = make<Inserthead>(*this);
+    this->addChildComponent(this->inserthead.get());
+    this->inserthead->setVisible(true);
 }
 
 PianoRoll::~PianoRoll() = default;
