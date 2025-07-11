@@ -193,6 +193,8 @@ public:
     SerializedData serialize() const override;
     void deserialize(const SerializedData &data) override;
     void reset() override;
+
+    Value markovInsertBeat = Value(0.f);
     
 protected:
 

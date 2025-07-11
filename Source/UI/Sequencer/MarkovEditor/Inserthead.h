@@ -26,22 +26,12 @@ class Transport;
 class PianoRoll;
 
 
-
 class Inserthead :
     public Component,
-    private AsyncUpdater
+    public Value::Listener
 {
 public:
-
-    class Listener
-    {
-    public:
-        virtual ~Listener() = default;
-        virtual void onMovePlayhead(int oldX, int newX) = 0;
-    };
-
     Inserthead(PianoRoll &parentRoll,
-        Inserthead::Listener *movementListener = nullptr,
         float alpha = 1.f);
 
     ~Inserthead() override;
@@ -49,13 +39,21 @@ public:
     void updatePosition();
     void updatePosition(float position);
 
-    void mouseDrag(const MouseEvent &e) override;
+    //===------------------------------------------------------------------===//
+    // Value::Listener
+    //===------------------------------------------------------------------===//
+
+    void valueChanged (Value& value) override;
 
     //===------------------------------------------------------------------===//
     // Component
     //===------------------------------------------------------------------===//
 
-    void paint(juce::Graphics &g) override;
+    void mouseDown(const MouseEvent &e) override;
+    void mouseDrag(const MouseEvent &e) override;
+    void mouseUp(const MouseEvent &e) override;
+
+    void paint(Graphics &g) override;
     void parentSizeChanged() override;
     void parentHierarchyChanged() override;
 
@@ -63,17 +61,8 @@ protected:
 
     PianoRoll &roll;
 
-    Listener *listener = nullptr;
-
-    void handleAsyncUpdate() override;
-
     ComponentDragger dragger;
-
     bool draggingState = false;
-
-    float beatAnchor = 0.f;
-    double timeAnchor = 0.0;
-    float lastCorrectBeat = 0.f;
 
     Colour currentColour;
 
@@ -82,12 +71,4 @@ protected:
     const Colour recordingColour;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Inserthead);
-};
-
-class InsertheadSmall final : public Inserthead
-{
-public:
-
-    InsertheadSmall(PianoRoll &parentRoll);
-    void paint(juce::Graphics &g) override;
 };

@@ -55,6 +55,9 @@ public:
     void loadModelFromFile();
     void saveModelToFile();
 
+    void setCurrentInsertBeat(float newValue);
+    float getCurrentInsertBeat();
+
 private:
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MarkovEditorPanel)
@@ -89,8 +92,6 @@ private:
 
     // -1 for no selection
     int selectedCell = -1;
-
-    float currentInsertBeat = 0;
 
     void updateState();
 

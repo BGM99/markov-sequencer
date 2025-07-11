@@ -76,6 +76,16 @@ MarkovEditorPanel::~MarkovEditorPanel()
 {
 }
 
+float MarkovEditorPanel::getCurrentInsertBeat()
+{
+    return roll->markovInsertBeat.getValue();
+}
+
+void MarkovEditorPanel::setCurrentInsertBeat(float newValue)
+{
+    return roll->markovInsertBeat.setValue(newValue);
+}
+
 void MarkovEditorPanel::paint(juce::Graphics &g)
 {
     const auto &theme = HelioTheme::getCurrentTheme();
@@ -223,7 +233,7 @@ void MarkovEditorPanel::removeSelectedNotes()
     if (this->selectedCell != -1)
     {
         int removeIndex = this->rowVector[this->currentState][this->selectedCell - 1].second;
-        this->modifyTrackSoundObject(false, removeIndex, this->currentInsertBeat, false);
+        this->modifyTrackSoundObject(false, removeIndex, this->getCurrentInsertBeat(), false);
     }
 }
 
@@ -259,13 +269,13 @@ void MarkovEditorPanel::cellClicked(int rowNumber, int columnId, const MouseEven
     if (this->selectedCell == columnId)
     {
         this->selectedCell = -1;
-        this->modifyTrackSoundObject(false, index, this->currentInsertBeat, false);
+        this->modifyTrackSoundObject(false, index, this->getCurrentInsertBeat(), false);
     }
     else
     {
         removeSelectedNotes();
         this->selectedCell = columnId;
-        this->modifyTrackSoundObject(true, index, this->currentInsertBeat, false);
+        this->modifyTrackSoundObject(true, index, this->getCurrentInsertBeat(), false);
     }
 
     this->listBox->repaint();
@@ -282,9 +292,9 @@ void MarkovEditorPanel::cellDoubleClicked(int rowNumber, int columnId, const Mou
 
     float length = 0;
 
-    length = this->modifyTrackSoundObject(true, index, this->currentInsertBeat, true);
+    length = this->modifyTrackSoundObject(true, index, this->getCurrentInsertBeat(), true);
 
-    this->currentInsertBeat += length;
+    this->setCurrentInsertBeat(this->getCurrentInsertBeat() + length);
 
     this->selectedCell = -1;
     this->currentState = index;
@@ -318,7 +328,7 @@ void MarkovEditorPanel::movePreviousState()
 
     sequence->removeGroup(notes, true);
 
-    this->currentInsertBeat -= std::get<2>(this->insertedSounds.top());
+    this->setCurrentInsertBeat(this->getCurrentInsertBeat() - std::get<2>(this->insertedSounds.top()));
     this->currentState = std::get<0>(this->insertedSounds.top());
     this->selectedCell = -1;
 
@@ -335,9 +345,9 @@ void MarkovEditorPanel::moveNextState()
 
     float length = 0;
 
-    length = this->modifyTrackSoundObject(true, index, this->currentInsertBeat, true);
+    length = this->modifyTrackSoundObject(true, index, this->getCurrentInsertBeat(), true);
 
-    this->currentInsertBeat += length;
+    this->setCurrentInsertBeat(this->getCurrentInsertBeat() + length);
 
     this->selectedCell = -1;
     this->currentState = index;

@@ -21,40 +21,35 @@
 #include "ColourIDs.h"
 
 Inserthead::Inserthead(PianoRoll &parentRoll,
-    Listener *movementListener /*= nullptr*/,
     float alpha /*= 1.f*/) :
     roll(parentRoll),
-    listener(movementListener),
     shadeColour(findDefaultColour(ColourIDs::Roll::playheadShade).withMultipliedAlpha(alpha)),
     playbackColour(findDefaultColour(ColourIDs::Roll::playheadPlayback).withMultipliedAlpha(alpha)),
     recordingColour(findDefaultColour(ColourIDs::Roll::playheadRecording).withMultipliedAlpha(alpha))
 {
     this->currentColour = this->playbackColour;
 
-    this->setInterceptsMouseClicks(false, false);
+    this->roll.markovInsertBeat.addListener(this);
+
+    this->setInterceptsMouseClicks(true, true);
     this->setPaintingIsUnclipped(true);
     this->setAccessible(false);
 
     this->setSize(3, 1);
-
-    this->beatAnchor = 0;
 }
 
 Inserthead::~Inserthead()
 {
+    this->roll.markovInsertBeat.removeListener(this);
 }
 
-
 //===----------------------------------------------------------------------===//
-// AsyncUpdater to call updatePosition on the main thread
+// juce::Value::Listener
 //===----------------------------------------------------------------------===//
 
-void Inserthead::handleAsyncUpdate()
+void Inserthead::valueChanged (Value& value)
 {
-    if (false)
-    {
-        this->updatePosition();
-    }
+    this->updatePosition(value.getValue());
 }
 
 //===----------------------------------------------------------------------===//
@@ -70,9 +65,54 @@ void Inserthead::paint(Graphics &g)
     g.fillRect(3, 0, 1, this->getHeight());
 }
 
+void Inserthead::mouseDown(const MouseEvent &e)
+{
+    if (this->roll.isMultiTouchEvent(e))
+    {
+        return;
+    }
+
+    if (e.mods.isLeftButtonDown())
+    {
+        this->dragger.startDraggingComponent(this, e);
+        this->draggingState = true;
+    }
+}
+
 void Inserthead::mouseDrag(const MouseEvent &e)
 {
+    if (this->roll.isMultiTouchEvent(e))
+    {
+        return;
+    }
 
+    if (e.mods.isLeftButtonDown() && e.getDistanceFromDragStart() > 4)
+    {
+        if (this->draggingState)
+        {
+            this->setMouseCursor(MouseCursor::DraggingHandCursor);
+            this->dragger.dragComponent(this, e, nullptr);
+            const float newBeat = this->roll.getBeatByXPosition(this->getX());
+            const auto oldBeat = static_cast<float> (this->roll.markovInsertBeat.getValue());
+
+            if (oldBeat != newBeat)
+            {
+                this->roll.markovInsertBeat.setValue(newBeat);
+            }
+        }
+    }
+}
+
+void Inserthead::mouseUp(const MouseEvent &e)
+{
+    if (e.mods.isLeftButtonDown())
+    {
+        if (this->draggingState)
+        {
+            this->setMouseCursor(MouseCursor::PointingHandCursor);
+            this->draggingState = false;
+        }
+    }
 }
 
 void Inserthead::parentSizeChanged()
@@ -100,28 +140,11 @@ void Inserthead::updatePosition(float position)
 
     if (oldX != newX)
     {
-        if (this->listener != nullptr)
-        {
-            this->listener->onMovePlayhead(oldX, newX);
-        }
-
         this->setTopLeftPosition(newX, 0);
     }
 }
 
 void Inserthead::updatePosition()
 {
-    this->updatePosition(this->lastCorrectBeat);
-}
-
-InsertheadSmall::InsertheadSmall(PianoRoll &parentRoll) :
-    Inserthead(parentRoll, nullptr, 0.75f)
-{
-    this->setSize(1, 1);
-}
-
-void InsertheadSmall::paint(Graphics &g)
-{
-    g.setColour(this->currentColour);
-    g.fillRect(0, 1, 1, this->getHeight() - 1);
+    this->updatePosition(this->roll.markovInsertBeat.getValue());
 }
