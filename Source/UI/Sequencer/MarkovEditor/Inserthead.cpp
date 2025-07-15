@@ -98,6 +98,11 @@ void Inserthead::mouseDrag(const MouseEvent &e)
             if (oldBeat != newBeat)
             {
                 this->roll.markovInsertBeat.setValue(newBeat);
+
+                if (auto* parent = this->getParentComponent())
+                {
+                    parent->repaint();
+                }
             }
         }
     }
@@ -113,6 +118,16 @@ void Inserthead::mouseUp(const MouseEvent &e)
             this->draggingState = false;
         }
     }
+}
+
+void Inserthead::mouseEnter(const MouseEvent &e)
+{
+    this->setMouseCursor(MouseCursor::PointingHandCursor);
+}
+
+void Inserthead::mouseExit(const MouseEvent &e)
+{
+    this->setMouseCursor(MouseCursor::NormalCursor);
 }
 
 void Inserthead::parentSizeChanged()
