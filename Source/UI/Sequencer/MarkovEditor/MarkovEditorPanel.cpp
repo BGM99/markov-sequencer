@@ -22,6 +22,8 @@ MarkovEditorPanel::MarkovEditorPanel(ProjectNode &project, PianoRoll *roll) :
 {
     this->setPaintingIsUnclipped(true);
 
+    this->roll->markovInsertBeat.addListener(this);
+
     this->listBox = make<TableListBox>();
     this->listBox->setModel(this);
     this->listBox->setMultipleSelectionEnabled(false);
@@ -74,6 +76,18 @@ MarkovEditorPanel::MarkovEditorPanel(ProjectNode &project, PianoRoll *roll) :
 
 MarkovEditorPanel::~MarkovEditorPanel()
 {
+    this->roll->markovInsertBeat.removeListener(this);
+}
+
+void MarkovEditorPanel::valueChanged(Value &value)
+{
+    if (this->selectedCell != -1)
+    {
+        int index = this->rowVector[this->currentState][this->selectedCell - 1].second;
+        this->modifyTrackSoundObject(false, index, this->lastInsertBeat, false);
+        this->modifyTrackSoundObject(true, index, value.getValue(), false);
+    }
+    this->lastInsertBeat = value.getValue();
 }
 
 float MarkovEditorPanel::getCurrentInsertBeat()

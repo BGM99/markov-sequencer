@@ -24,6 +24,7 @@ class ProjectNode;
 /*
 */
 class MarkovEditorPanel final : public Component,
+                                public Value::Listener,
                                 private TableListBoxModel
 {
     using Sound = std::variant<Note, std::vector<Note>, float>;
@@ -32,6 +33,9 @@ public:
 
     MarkovEditorPanel(ProjectNode &project, PianoRoll *roll);
     ~MarkovEditorPanel() override;
+
+    /* Value::Listener */
+    void valueChanged (Value& value) override;
 
     /* Component */
     void paint(juce::Graphics &) override;
@@ -92,6 +96,9 @@ private:
 
     // -1 for no selection
     int selectedCell = -1;
+
+    // the beat where the selected sound was inserted
+    float lastInsertBeat = 0.f;
 
     void updateState();
 
