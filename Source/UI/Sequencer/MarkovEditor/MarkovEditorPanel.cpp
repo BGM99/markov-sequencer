@@ -342,7 +342,7 @@ void MarkovEditorPanel::movePreviousState()
 
     sequence->removeGroup(notes, true);
 
-    this->setCurrentInsertBeat(this->getCurrentInsertBeat() - std::get<2>(this->insertedSounds.top()));
+    this->setCurrentInsertBeat(std::get<2>(this->insertedSounds.top()));
     this->currentState = std::get<0>(this->insertedSounds.top());
     this->selectedCell = -1;
 
@@ -516,7 +516,7 @@ float MarkovEditorPanel::modifyTrackSoundObject(bool insert, int objectIndex, fl
 
     if (insert)
     {
-        if (checkpoint) this->insertedSounds.push({this->currentState, notes, length});
+        if (checkpoint) this->insertedSounds.push({this->currentState, notes, beat});
         sequence->insertGroup(notes, checkpoint);
     }
     else
