@@ -271,6 +271,8 @@ void MainLayout::showPage(Component *page, TreeNode *source)
     this->visibleCommandReceivers.clearQuick();
     findVisibleCommandReceivers(this->currentContent.getComponent(), this->visibleCommandReceivers);
     this->consoleCommonActions->setActiveCommandReceivers(this->visibleCommandReceivers);
+
+    this->headline->toFront(true);
 }
 
 //===----------------------------------------------------------------------===//
