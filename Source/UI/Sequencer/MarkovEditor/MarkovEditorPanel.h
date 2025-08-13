@@ -54,6 +54,7 @@ public:
     bool canMovePreviousState() const;
     void movePreviousState();
     void moveNextState();
+    void generateSequence(int length);
 
     void generateModel();
     void loadModelFromFile();

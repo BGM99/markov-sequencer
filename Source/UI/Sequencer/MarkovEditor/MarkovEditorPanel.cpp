@@ -369,6 +369,14 @@ void MarkovEditorPanel::moveNextState()
     this->listBox->repaint();
 }
 
+void MarkovEditorPanel::generateSequence(int length)
+{
+    for (int i = 0; i < length; i++)
+    {
+        moveNextState();
+    }
+}
+
 void MarkovEditorPanel::generateModel()
 {
     const auto *sequence = dynamic_cast<PianoSequence *>(this->roll->getActiveTrack().get()->getSequence());
