@@ -18,6 +18,7 @@
 #include <IconButton.h>
 #include <RollBase.h>
 #include <variant>
+#include "Dialogs/DialogBase.h"
 
 class ProjectNode;
 //==============================================================================
@@ -54,6 +55,7 @@ public:
     bool canMovePreviousState() const;
     void movePreviousState();
     void moveNextState();
+    void showGenerateSequenceDialog();
     void generateSequence(int length);
 
     void generateModel();
@@ -112,4 +114,25 @@ private:
     // Editor Controls
     UniquePointer<IconButton> navigatePrevious;
     UniquePointer<IconButton> navigateNext;
+    UniquePointer<TextButton> generateSequenceButton;
+};
+
+class GenerateSequenceDialog final : public DialogBase
+{
+
+public:
+    GenerateSequenceDialog(MarkovEditorPanel &panel);
+    ~GenerateSequenceDialog();
+    void updateSize();
+    void resized() override;
+
+private:
+    UniquePointer<Label> generateSequenceLabel;
+    UniquePointer<TextEditor> sequenceLength;
+    UniquePointer<TextButton> okButton;
+    UniquePointer<TextButton> cancelButton;
+
+    int length;
+
+    MarkovEditorPanel& owner;
 };

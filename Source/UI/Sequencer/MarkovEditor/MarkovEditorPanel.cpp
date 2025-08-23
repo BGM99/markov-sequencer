@@ -71,6 +71,14 @@ MarkovEditorPanel::MarkovEditorPanel(ProjectNode &project, PianoRoll *roll) :
     this->navigateNext->setEnabled(true);
     this->addAndMakeVisible(this->navigateNext.get());
 
+    this->generateSequenceButton = make<TextButton>();
+    this->generateSequenceButton->setButtonText("Generate");
+    this->generateSequenceButton->setColour(juce::TextButton::buttonColourId, juce::Colours::grey);
+    this->generateSequenceButton->setColour(juce::Label::textColourId, juce::Colours::white);
+    this->generateSequenceButton->setBoundsInset(BorderSize(5));
+    this->generateSequenceButton->onClick = [this] { showGenerateSequenceDialog(); };
+    this->addAndMakeVisible(generateSequenceButton.get());
+
     this->updateState();
 }
 
@@ -144,6 +152,7 @@ void MarkovEditorPanel::resized()
     navigationPanel.removeFromRight(30);
     navigateNext.get()->setBounds(navigationPanel.removeFromRight(20));
     navigatePrevious.get()->setBounds(navigationPanel.removeFromRight(20));
+    generateSequenceButton.get()->setBounds(editorControlBounds.removeFromTop(20));
 
     this->listBox->setBounds(localBounds);
 }
@@ -369,6 +378,11 @@ void MarkovEditorPanel::moveNextState()
     this->listBox->repaint();
 }
 
+void MarkovEditorPanel::showGenerateSequenceDialog()
+{
+    App::showModalComponent(UniquePointer<Component>(std::make_unique<GenerateSequenceDialog>(*this)));
+}
+
 void MarkovEditorPanel::generateSequence(int length)
 {
     for (int i = 0; i < length; i++)
@@ -533,4 +547,101 @@ float MarkovEditorPanel::modifyTrackSoundObject(bool insert, int objectIndex, fl
         if (checkpoint) this->insertedSounds.pop();
     }
     return length;
+}
+
+GenerateSequenceDialog::GenerateSequenceDialog(MarkovEditorPanel &panel) : owner(panel)
+{
+    this->generateSequenceLabel = make<Label>();
+    this->generateSequenceLabel->setText("Specify Sequence Length", dontSendNotification);
+    this->generateSequenceLabel->setFont(Globals::UI::Fonts::L);
+    this->generateSequenceLabel->setJustificationType(Justification::centred);
+    this->generateSequenceLabel->setInterceptsMouseClicks(false, false);
+    this->addAndMakeVisible(this->generateSequenceLabel.get());
+
+    this->sequenceLength = HelioTheme::makeSingleLineTextEditor(true, Defaults::textEditorFont);
+    this->addAndMakeVisible(this->sequenceLength.get());
+
+    this->sequenceLength->onTextChange = [this]() {
+        if (this->sequenceLength->getText().isNotEmpty())
+        {
+            auto text = this->sequenceLength->getText().toStdString();
+            const bool onlyDigits = !text.empty() &&
+                std::all_of(text.begin(), text.end(), [](unsigned char c) {
+                    return std::isdigit(c);
+                });
+
+            if (onlyDigits)
+            {
+                this->length = std::stoi(text);
+                this->sequenceLength->setText(std::to_string(this->length), dontSendNotification);
+
+            } else
+            {
+                this->sequenceLength->setText(std::to_string(this->length), dontSendNotification);
+            }
+        }
+    };
+
+    this->sequenceLength->onReturnKey = [this]() {
+        if (this->sequenceLength->getText().isNotEmpty())
+        {
+            this->dismiss(); // apply on return key
+            return;
+        }
+
+        this->resetKeyboardFocus();
+    };
+
+    this->sequenceLength->onFocusLost = [this]() {
+        // this->updateOkButtonState();
+
+        if (nullptr != dynamic_cast<TextEditor *>(Component::getCurrentlyFocusedComponent()))
+        {
+            return; // some other editor is focused
+        }
+
+        this->resetKeyboardFocus();
+    };
+
+    this->cancelButton = make<TextButton>();
+    this->cancelButton->setButtonText(TRANS(I18n::Dialog::cancel));
+    this->addAndMakeVisible(this->cancelButton.get());
+    this->cancelButton->onClick = [this]() {
+        this->dismiss();
+    };
+
+    this->okButton = make<TextButton>();
+    this->okButton->setButtonText(TRANS(I18n::Dialog::apply));
+    this->addAndMakeVisible(this->okButton.get());
+    this->okButton->onClick = [this]() {
+        if (this->sequenceLength->getText().isNotEmpty())
+        {
+            this->owner.generateSequence(this->length);
+            this->dismiss();
+        }
+    };
+
+    this->setTopLeftPosition(500,100);
+    this->updateSize();
+}
+
+GenerateSequenceDialog::~GenerateSequenceDialog() = default;
+
+void GenerateSequenceDialog::updateSize()
+{
+    const auto isPhoneLayout = App::isRunningOnPhone();
+    const auto oldWidth = this->getWidth();
+    this->setSize(this->getHorizontalSpacingExceptContent() + 200,
+        isPhoneLayout ? Defaults::Phone::maxDialogHeight : 180);
+    this->setTopLeftPosition(this->getPosition().translated((oldWidth - this->getWidth()) / 2, 0));
+}
+
+void GenerateSequenceDialog::resized()
+{
+    this->generateSequenceLabel->setBounds(this->getCaptionBounds());
+
+    this->okButton->setBounds(this->getButton1Bounds());
+    this->cancelButton->setBounds(this->getButton2Bounds());
+
+    this->sequenceLength->setBounds(this->getRowBounds(0.2f, Globals::UI::textEditorHeight));
 }
