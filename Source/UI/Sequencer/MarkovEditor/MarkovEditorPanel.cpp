@@ -279,7 +279,12 @@ int MarkovEditorPanel::getRandomSoundObject()
     }
 
     int index = this->findNearestAbove(cumulativeSums, random);
-    return this->rowVector[this->currentState][index].second;
+    if (index == -1 && this->currentState != -1) {
+        this->currentState = -1;
+        return this->getRandomSoundObject();
+    } else {
+        return this->rowVector[this->currentState][index].second;
+    }
 }
 
 void MarkovEditorPanel::cellClicked(int rowNumber, int columnId, const MouseEvent &mouse_event)
